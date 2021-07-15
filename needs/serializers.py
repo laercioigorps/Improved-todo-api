@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Need, Goal, Step
+from .models import Need, Goal, Step, Iteration
 
 
 class NeedSerializer(serializers.ModelSerializer):
@@ -19,3 +19,9 @@ class StepSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Step
 		fields = ['id', 'name', 'description', 'completed', 'goal']
+
+class IterationSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = Iteration
+		fields = ['id', 'number', 'completed', 'date', 'goal']
