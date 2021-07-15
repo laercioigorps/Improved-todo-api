@@ -1,6 +1,6 @@
 from django.test import TestCase
 from needs.models import Need, Goal, Step, Iteration, Delivery
-from needs.serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer
+from needs.serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer, DeliverySerializer
 from django.contrib.auth.models import User
 import datetime
 import io
@@ -198,7 +198,6 @@ class IterationSerializerTest(TestCase):
 		self.step3 = Step.objects.create(name='step3', description='step3Description',
 			completed=False,goal = self.goal1)
 
-		
 		self.iteration1 = Iteration.objects.create(number=1, completed = False,
 		date = datetime.date.today(), goal = self.goal1)
 		self.iteration2 = Iteration.objects.create(number=2, completed = False,
@@ -225,7 +224,6 @@ class IterationSerializerTest(TestCase):
 		self.assertEqual(count, 4)
 
 	def test_iteration_update(self):
-
 		iteration = Iteration.objects.get(id=self.iteration1.id)
 		iteration.number = 2
 		iteration.completed = True
@@ -249,12 +247,74 @@ class IterationSerializerTest(TestCase):
 		self.assertEqual(getIteration.date, nextWeekDate)
 		self.assertEqual(getIteration.goal, self.goal2)
 
+class DeliverySerializerTest(TestCase):
 
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
 
+		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
 
+		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
 
+		self.step1 = Step.objects.create(name='step1', description='step1Description',
+			completed=False,goal = self.goal1)
+		self.step2 = Step.objects.create(name='step2', description='step2Description',
+			completed=False,goal = self.goal1)
+		self.step3 = Step.objects.create(name='step3', description='step3Description',
+			completed=False,goal = self.goal1)
 
+		self.iteration1 = Iteration.objects.create(number=1, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		self.iteration2 = Iteration.objects.create(number=2, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		self.iteration3 = Iteration.objects.create(number=1, completed = True,
+		date = datetime.date.today(), goal = self.goal2)
 
+		self.delivery1 = Delivery.objects.create(name='delivery1', description='delivery1Description',
+			step = self.step1, iteration = self.iteration1, completed= False)
+		self.delivery2 = Delivery.objects.create(name='delivery2', description='delivery2Description',
+			step = self.step1, iteration = self.iteration1, completed=False)
+		self.delivery3 = Delivery.objects.create(name='delivery3', description='delivery1Description',
+			step = self.step2, iteration = self.iteration1, completed=False)
 
+	def test_delivery_creation(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
 
+		delivery = Delivery(name='newDelivery', description='newDeliveryDescription',
+			step = self.step3, iteration = self.iteration1, completed= False)
+
+		deliverySerializer = DeliverySerializer(delivery)
+		data = get_json_data(deliverySerializer.data)
+
+		serializer = DeliverySerializer(data=data)
+		serializer.is_valid()
+		serializer.save()
+
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 4)
+
+	def test_delivery_update(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+		delivery = Delivery.objects.get(id=self.delivery1.id)
+		delivery.name = 'newDeliveryName'
+		delivery.description = 'newDeliveryDescription'
+		delivery.step = self.step2
+
+		deliverySerializer = DeliverySerializer(delivery)
+		data = get_json_data(deliverySerializer.data)
+		serializer = DeliverySerializer(delivery, data=data)
+		serializer.is_valid()
+		serializer.save()
+
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+		self.assertEqual(delivery.name, 'newDeliveryName')
+		self.assertEqual(delivery.description, 'newDeliveryDescription')
+		self.assertEqual(delivery.step, self.step2)
 
