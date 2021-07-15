@@ -1,5 +1,5 @@
 from django.test import TestCase
-from needs.models import Need, Goal, Step
+from needs.models import Need, Goal, Step, Iteration, Delivery
 from django.contrib.auth.models import User
 import datetime
 
@@ -63,13 +63,20 @@ class StepModelTest(TestCase):
 
 	def setUp(self):
 
-		self.goal1 = Goal.objects.create(name='goal1')
+		self.user1 = User.objects.create_user('root3','email2@exemple.com','root')
+
+		self.need1 = Need.objects.create(name='mind', description='a need we have', user=self.user1)
+
+		self.goal1 = Goal.objects.create(name='goal1', endDate=datetime.date.today(), need = self.need1)
+		
 		self.step1 = Step.objects.create(name='first step', description='I like it',
 		 completed=False, goal=self.goal1)
 		self.step2 = Step.objects.create(name='second step', description='I kind of like it',
 		 completed=False, goal=self.goal1)
 		self.step3 = Step.objects.create(name='third step', description='I dont know if I like it',
 		 completed=False, goal=self.goal1)
+
+		
 
 	def test_step_creation(self):
 		count = Step.objects.all().count()
@@ -129,3 +136,97 @@ class GoalModelTest(TestCase):
 		self.assertEqual(goal.name, 'teste2')
 		self.assertEqual(goal.description, 'description teste')
 		self.assertEqual(goal.endDate, date)
+
+	def test_goal_update(self):
+		goal = Goal.objects.get(name='goal3')
+		goal.name = 'goal3Edited'
+		goal.description = 'a edited need we have'
+		goal.save()
+		editedGoal = Goal.objects.get(name='goal3Edited')
+		self.assertEqual(editedGoal.description, 'a edited need we have')
+
+
+	def test_goal_delete(self):
+		goal = Goal.objects.get(name='goal3')
+		self.assertEqual(Goal.objects.all().count(), 3)
+		goal.delete()
+		self.assertEqual(Goal.objects.all().count(), 2)
+
+
+class IterationModelTest(TestCase):
+
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+		# self.user2 = User.objects.create_user('root2','email2@exemple.com','root')
+		# self.user3 = User.objects.create_user('root3','email2@exemple.com','root')
+
+		self.need1 = Need.objects.create(name='mind', description='a need we have', user=self.user1)
+		self.need2 = Need.objects.create(name='body', description='a need we have', user=self.user1)
+		self.need3 = Need.objects.create(name='financial', description='a need we have', user=self.user1)
+
+
+		self.goal1 = Goal.objects.create(name="teste", need= self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need= self.need1)
+		self.goal3 = Goal.objects.create(name="goal3", need= self.need2)
+
+		self.iteration1 = Iteration.objects.create(number=1, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		
+
+	def test_Iteration_creation(self):
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 1)
+		Iteration.objects.create(number=2, completed = False,
+		date = datetime.date.today(), goal = self.goal2)
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 2)
+
+	def test_iteration_date(self):
+		iteration = Iteration.objects.get(id=self.iteration1.id)
+		today = datetime.date.today()
+		self.assertEqual(iteration.date, today)
+
+class DelivelyModelTest(TestCase):
+
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+		# self.user2 = User.objects.create_user('root2','email2@exemple.com','root')
+		# self.user3 = User.objects.create_user('root3','email2@exemple.com','root')
+
+		self.need1 = Need.objects.create(name='mind', description='a need we have', user=self.user1)
+		self.need2 = Need.objects.create(name='body', description='a need we have', user=self.user1)
+		self.need3 = Need.objects.create(name='financial', description='a need we have', user=self.user1)
+
+
+		self.goal1 = Goal.objects.create(name="teste", need= self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need= self.need1)
+		self.goal3 = Goal.objects.create(name="goal3", need= self.need2)
+
+		self.iteration1 = Iteration.objects.create(number=1, completed= False,
+		date = datetime.date.today(), goal=self.goal1)
+
+		self.step1 = Step.objects.create(name='first step', description='I like it',
+		 completed=False, goal=self.goal1)
+		self.step2 = Step.objects.create(name='second step', description='I kind of like it',
+		 completed=False, goal=self.goal1)
+		self.step3 = Step.objects.create(name='third step', description='I dont know if I like it',
+		 completed=False, goal=self.goal1)
+
+		self.delivery1 = Delivery.objects.create(name='delivery1', description='delivery1',
+			step = self.step1, iteration = self.iteration1, completed= False)
+		self.delivery2 = Delivery.objects.create(name='delivery2', description='delivery2',
+			step = self.step1, iteration = self.iteration1, completed=False)
+		self.delivery3 = Delivery.objects.create(name='delivery3', description='delivery1',
+			step = self.step2, iteration = self.iteration1, completed=False)
+
+
+	def test_delivery_creation(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+		delivery4 = Delivery.objects.create(name='delivery4', description='delivery4',
+			step = self.step1, iteration = self.iteration1, completed= False)
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 4)
+
+	
+
