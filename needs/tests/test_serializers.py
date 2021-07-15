@@ -1,6 +1,6 @@
 from django.test import TestCase
 from needs.models import Need, Goal, Step, Iteration, Delivery
-from needs.serializers import NeedSerializer, GoalSerializer, StepSerializer
+from needs.serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer
 from django.contrib.auth.models import User
 import datetime
 import io
@@ -128,7 +128,6 @@ class StepSerializerTest(TestCase):
 		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
 		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
 
-
 		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
 		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
 		self.goal3 = Goal.objects.create(name="goal3", need=self.need2)
@@ -181,6 +180,78 @@ class StepSerializerTest(TestCase):
 		self.assertEqual(getStep.name , 'newStepName')
 		self.assertEqual(getStep.description, 'newStepDescription')
 		self.assertEqual(getStep.completed, True)
+
+class IterationSerializerTest(TestCase):
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+
+		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
+
+		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
+
+		self.step1 = Step.objects.create(name='step1', description='step1Description',
+			completed=False,goal = self.goal1)
+		self.step2 = Step.objects.create(name='step2', description='step2Description',
+			completed=False,goal = self.goal1)
+		self.step3 = Step.objects.create(name='step3', description='step3Description',
+			completed=False,goal = self.goal1)
+
+		
+		self.iteration1 = Iteration.objects.create(number=1, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		self.iteration2 = Iteration.objects.create(number=2, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		self.iteration3 = Iteration.objects.create(number=1, completed = True,
+		date = datetime.date.today(), goal = self.goal2)
+
+
+	def test_iteration_creation(self):
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		iteration = Iteration(number=2, completed=False,
+		date=datetime.date.today(), goal=self.goal1)
+
+		iterationSerializer = IterationSerializer(iteration)
+		data = get_json_data(iterationSerializer.data)
+
+		serializer = IterationSerializer(data=data)
+		serializer.is_valid()
+		serializer.save()
+
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 4)
+
+	def test_iteration_update(self):
+
+		iteration = Iteration.objects.get(id=self.iteration1.id)
+		iteration.number = 2
+		iteration.completed = True
+		nextWeekDate = datetime.date.today() + datetime.timedelta(days=7)
+		iteration.date = nextWeekDate
+		iteration.goal = self.goal2
+
+		iterationSerializer = IterationSerializer(iteration)
+		data = get_json_data(iterationSerializer.data)
+
+		serializer = IterationSerializer(iteration, data=data)
+		serializer.is_valid()
+		serializer.save()
+
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		getIteration = Iteration.objects.get(id=iteration.id)
+		self.assertEqual(getIteration.number, 2)
+		self.assertEqual(getIteration.completed, True)
+		self.assertEqual(getIteration.date, nextWeekDate)
+		self.assertEqual(getIteration.goal, self.goal2)
+
+
+
+
 
 
 
