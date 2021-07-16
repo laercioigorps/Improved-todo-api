@@ -93,9 +93,13 @@ class GoalViewTest(TestCase):
 		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
 		self.need3 = Need.objects.create(name='need3', description='need3 description', user=self.user1)
 
-		self.goal1 = Goal.objects.create(name="goal1",description='goal1Description', need=self.need1)
-		self.goal2 = Goal.objects.create(name="goal2",description='goal2Description', need=self.need1)
-		self.goal3 = Goal.objects.create(name="goal3",description='goal3Description', need=self.need1)
+		self.today = datetime.date.today()
+		self.goal1 = Goal.objects.create(name="goal1",description='goal1Description',
+			endDate=self.today, need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2",description='goal2Description',
+			endDate=self.today, need=self.need1)
+		self.goal3 = Goal.objects.create(name="goal3",description='goal3Description',
+			endDate=self.today, need=self.need1)
 
 	def test_goal_create(self):
 		count = Goal.objects.all().count()
@@ -121,6 +125,28 @@ class GoalViewTest(TestCase):
 		self.assertEqual(goal.description, 'newGoalDescription')
 		self.assertEqual(goal.endDate, endDate)
 		self.assertEqual(goal.need, self.need1)
+
+	def test_goal_retrieve(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get('/goal/1/')
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(data['name'], 'goal1')
+		self.assertEqual(data['description'], 'goal1Description')
+		self.assertEqual(data['endDate'], self.today.strftime('%Y-%m-%d'))
+		self.assertEqual(data['need'], self.need1.id)
+
+
+	def test_goal_list(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get('/goal/')
+
+		self.assertEqual(response.status_code, 200)
+
 
 
 
