@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Need
+from .models import Need, Goal
 from .serializers import NeedSerializer, GoalSerializer
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
@@ -45,10 +45,10 @@ def need_detail_view(request, pk):
 
 def goal_list_view(request):
 
-	# if request.method == 'GET':
-	# 	needs = Need.objects.all()
-	# 	serializer = NeedSerializer(needs, many= True)
-	# 	return JsonResponse(serializer.data, safe=False)
+	if request.method == 'GET':
+		needs = Need.objects.all()
+		serializer = NeedSerializer(needs, many= True)
+		return JsonResponse(serializer.data, safe=False)
 
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
@@ -57,5 +57,17 @@ def goal_list_view(request):
 			serializer.save()
 			return JsonResponse(serializer.data)
 		return JsonResponse(serializer.errors)
+
+def goal_detail_view(request, pk):
+
+	try:
+		goal = Goal.objects.get(pk=pk)
+	except Goal.DoesNotExist:
+		return HttpResponse(status=400)
+
+	if request.method == 'GET':
+		serializer = GoalSerializer(goal)
+		return JsonResponse(serializer.data)
+
 
 
