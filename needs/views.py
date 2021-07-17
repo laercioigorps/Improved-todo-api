@@ -95,4 +95,25 @@ def step_list_view(request):
 			return JsonResponse(serializer.data, status=200)
 		return HttpResponse(status=404)
 
+def step_detail_view(request, pk):
+
+	try:
+		step = Step.objects.get(pk=pk)
+	except Step.DoesNotExist:
+		return HttpResponse(status = 404)
+	if request.method == 'GET':
+		serializer = StepSerializer(step)
+		return JsonResponse(serializer.data)
+	if request.method == 'PUT':
+		data = JSONParser().parse(request)
+		serializer = StepSerializer(step, data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JsonResponse(serializer.data)
+		return JsonResponse(serializer.errors, status=400)
+	if request.method == 'DELETE':
+		step.delete()
+		return HttpResponse(status=200)
+
+
 
