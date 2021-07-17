@@ -311,6 +311,55 @@ class IterationViewTest(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 
+	def test_iteration_update(self):
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.put('/iteration/1/', {
+			'number' : 2,
+			'completed' : True,
+			'date' : datetime.date.today(),
+			'goal': self.goal2.id,
+			}, format='json')
+		self.assertEqual(response.status_code, 200)
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		iteration = Iteration.objects.get(id=1)
+		self.assertEqual(iteration.number, 2)
+		self.assertIs(iteration.completed, True)
+		self.assertEqual(iteration.date, datetime.date.today())
+		self.assertEqual(iteration.goal, self.goal2)
+
+	def test_iteration_retrieve(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/iteration/1/')
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(data['number'], 1)
+		self.assertEqual(data['completed'], False)
+		self.assertEqual(data['date'], datetime.date.today().strftime('%Y-%m-%d'))
+		self.assertEqual(data['goal'], self.goal1.id)
+
+	def test_iteration_delete(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		response = client.delete('/iteration/1/')
+
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 2)
 
 
 
