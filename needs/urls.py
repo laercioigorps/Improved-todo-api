@@ -7,6 +7,7 @@ urlpatterns = [
     path('goal/', views.goal_list_view),
     path('goal/<int:pk>/', views.goal_detail_view),
     path('step/', views.step_list_view),
-     path('step/<int:pk>/', views.step_detail_view),
+    path('step/<int:pk>/', views.step_detail_view),
+    path('iteration/', views.iteration_list_view),
     
 ]

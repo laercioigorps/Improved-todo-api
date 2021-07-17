@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Need, Goal, Step
-from .serializers import NeedSerializer, GoalSerializer, StepSerializer
+from .models import Need, Goal, Step, Iteration
+from .serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 
@@ -114,6 +114,21 @@ def step_detail_view(request, pk):
 	if request.method == 'DELETE':
 		step.delete()
 		return HttpResponse(status=200)
+
+
+def iteration_list_view(request):
+	if request.method == 'GET':
+		iterations = Iteration.objects.all()
+		serializer = IterationSerializer(iterations, many=True)
+		return JsonResponse(serializer.data, safe=False)
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		serializer = IterationSerializer(data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JsonResponse(serializer.data)
+		return JsonResponse(response.errors, status=400)
+
 
 
 
