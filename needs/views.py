@@ -129,6 +129,27 @@ def iteration_list_view(request):
 			return JsonResponse(serializer.data)
 		return JsonResponse(response.errors, status=400)
 
+def iteration_detail_view(request, pk):
+	try:
+		iteration = Iteration.objects.get(pk=pk)
+	except Iteration.DoesNotExist:
+		return HttpResponse(status=404)
+
+	if request.method == 'GET':
+		serializer = IterationSerializer(iteration)
+		return JsonResponse(serializer.data)
+
+	if request.method == 'PUT':
+		data = JSONParser().parse(request)
+		serializer = IterationSerializer(iteration, data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JsonResponse(serializer.data)
+		return JsonResponse(serializer.errors, status=404)
+	if request.method == 'DELETE':
+		iteration.delete()
+		return HttpResponse(status=203)
+
 
 
 
