@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Need, Goal
-from .serializers import NeedSerializer, GoalSerializer
+from .serializers import NeedSerializer, GoalSerializer, StepSerializer
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 
@@ -79,5 +79,15 @@ def goal_detail_view(request, pk):
 		goal.delete()
 		return HttpResponse(status=204)
 
+
+def step_list_view(request):
+
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		serializer = StepSerializer(data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JsonResponse(serializer.data, status=200)
+		return HttpResponse(status=404)
 
 
