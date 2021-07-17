@@ -216,6 +216,51 @@ class StepViewTest(TestCase):
 		response = client.get('/step/')
 		self.assertEqual(response.status_code, 200)
 
+	def test_step_retrieve(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/step/1/')
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(data['name'], 'step1')
+		self.assertEqual(data['description'], 'step1Description')
+		self.assertEqual(data['completed'], False)
+		self.assertEqual(data['goal'], self.goal1.id)
+
+	def test_step_update(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.put('/step/1/', {
+			'name' : 'step1Updated',
+			'description' : 'step1DescriptionUpdated',
+			'completed' : True,
+			'goal' : self.goal2.id,
+			}, format='json')
+		
+		self.assertEqual(response.status_code, 200)
+		step = Step.objects.get(id=1)
+		self.assertEqual(step.name, 'step1Updated')
+		self.assertEqual(step.description, 'step1DescriptionUpdated')
+		self.assertIs(step.completed, True)
+		self.assertEqual(step.goal, self.goal2)
+
+	def test_step_delete(self):
+		count = Step.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.delete('/step/1/')
+		self.assertEqual(response.status_code, 200)
+
+		count = Step.objects.all().count()
+		self.assertEqual(count, 2)
+
 
 
 
