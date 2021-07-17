@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
-from needs.models import Need, Goal
+from needs.models import Need, Goal, Step
 from needs.serializers import NeedSerializer
 from rest_framework.parsers import JSONParser
 import io
@@ -139,12 +139,10 @@ class GoalViewTest(TestCase):
 		self.assertEqual(data['endDate'], self.today.strftime('%Y-%m-%d'))
 		self.assertEqual(data['need'], self.need1.id)
 
-
 	def test_goal_list(self):
 		client = APIClient()
 		client.login(username='root1', password='root')
 		response = client.get('/goal/')
-
 		self.assertEqual(response.status_code, 200)
 
 	def test_goal_update(self):
@@ -174,6 +172,42 @@ class GoalViewTest(TestCase):
 
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 2)
+
+class StepViewTest(TestCase):
+
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+
+		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
+
+		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
+
+		self.step1 = Step.objects.create(name='step1', description='step1Description',
+			completed=False,goal = self.goal1)
+		self.step2 = Step.objects.create(name='step2', description='step2Description',
+			completed=False,goal = self.goal1)
+		self.step3 = Step.objects.create(name='step3', description='step3Description',
+			completed=False,goal = self.goal1)
+
+	def test_step_creation(self):
+		count = Step.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.post('/step/',{
+				'name' : 'newStep',
+				'description' : 'newStepDescription',
+				'completed' : True,
+				'goal' : self.goal2.id,
+			}, format='json')
+
+		self.assertEqual(response.status_code, 200)
+		count = Step.objects.all().count()
+		self.assertEqual(count, 3)
 
 
 
