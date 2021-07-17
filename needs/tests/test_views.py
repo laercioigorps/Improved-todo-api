@@ -207,8 +207,14 @@ class StepViewTest(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 		count = Step.objects.all().count()
-		self.assertEqual(count, 3)
+		self.assertEqual(count, 4)
 
+	def test_step_list(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/step/')
+		self.assertEqual(response.status_code, 200)
 
 
 
