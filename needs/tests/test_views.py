@@ -147,6 +147,23 @@ class GoalViewTest(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 
+	def test_goal_update(self):
+		client = APIClient()
+		client.login(username='root1', password='root')	
+		client.put('/goal/1/', {
+			'name':'newNameForGoal1',
+			'description' : 'newDescriptionForGoal1',
+			'endDate' : self.today,
+			'need' : self.need2.id,
+			}, format='json')
+
+		goal = Goal.objects.get(id=1)
+		self.assertEqual(goal.name, 'newNameForGoal1')
+		self.assertEqual(goal.description, 'newDescriptionForGoal1')
+		self.assertEqual(goal.endDate, self.today)
+		self.assertEqual(goal.need, self.need2)
+
+
 	def test_goal_delete(self):
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 3)
