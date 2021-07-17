@@ -68,6 +68,9 @@ def goal_detail_view(request, pk):
 	if request.method == 'GET':
 		serializer = GoalSerializer(goal)
 		return JsonResponse(serializer.data)
+	if request.method == 'DELETE':
+		goal.delete()
+		return HttpResponse(status=204)
 
 
 
