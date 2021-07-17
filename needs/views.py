@@ -68,6 +68,13 @@ def goal_detail_view(request, pk):
 	if request.method == 'GET':
 		serializer = GoalSerializer(goal)
 		return JsonResponse(serializer.data)
+	if request.method == 'PUT':
+		data = JSONParser().parse(request)
+		serializer = GoalSerializer(goal, data=data)
+		if(serializer.is_valid()):
+			serializer.save()
+			return JsonResponse(serializer.data)
+		return JsonResponse(serializer.errors)
 	if request.method == 'DELETE':
 		goal.delete()
 		return HttpResponse(status=204)
