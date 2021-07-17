@@ -147,6 +147,16 @@ class GoalViewTest(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 
+	def test_goal_delete(self):
+		count = Goal.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+		client.delete('/goal/1/')
+
+		count = Goal.objects.all().count()
+		self.assertEqual(count, 2)
 
 
 
