@@ -26,7 +26,7 @@ def need_list_view(request, format=None):
 			return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def need_detail_view(request, pk):
+def need_detail_view(request, pk, format=None):
 	try:
 		need = Need.objects.get(pk=pk)
 	except Need.DoesNotExist:
@@ -48,7 +48,7 @@ def need_detail_view(request, pk):
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
-def goal_list_view(request):
+def goal_list_view(request, format=None):
 
 	if request.method == 'GET':
 		needs = Need.objects.all()
@@ -64,7 +64,7 @@ def goal_list_view(request):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def goal_detail_view(request, pk):
+def goal_detail_view(request, pk, format=None):
 	try:
 		goal = Goal.objects.get(pk=pk)
 	except Goal.DoesNotExist:
@@ -86,7 +86,7 @@ def goal_detail_view(request, pk):
 
 
 @api_view(['GET', 'POST'])
-def step_list_view(request):
+def step_list_view(request, format=None):
 	if request.method == 'GET':
 		steps = Step.objects.all()
 		serializer = StepSerializer(steps, many=True)
