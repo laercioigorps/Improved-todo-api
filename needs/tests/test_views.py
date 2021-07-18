@@ -15,7 +15,7 @@ class NeedViewTest(TestCase):
 
 		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
 		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
-		self.need3 = Need.objects.create(name='need3', description='need3 description', user=self.user1)
+		self.need3 = Need.objects.create(name='need3', description='need3 description', user=self.user2)
 
 	def test_need_create(self):
 		count = Need.objects.all().count()
@@ -33,8 +33,25 @@ class NeedViewTest(TestCase):
 		count = Need.objects.all().count()
 		self.assertEqual(count, 4)
 		
-		need = Need.objects.get(name='newNeed')
+		need = Need.objects.get(id=4)
 		self.assertEqual(need.description, 'newneedDescription')
+		self.assertEqual(need.name, 'newNeed')
+		self.assertEqual(need.user, self.user1)
+
+	# def test_need_create_no_loged_user(self):
+	# 	count = Need.objects.all().count()
+	# 	self.assertEqual(count, 3)
+
+	# 	client = APIClient()
+	# 	response = client.post('/need/', 
+	# 		{
+	# 		'name': 'newNeed',
+	# 		'description' : 'newneedDescription',
+	# 		}, format='json')
+	# 	self.assertEqual(response.status_code , 400)
+
+	# 	count = Need.objects.all().count()
+	# 	self.assertEqual(count, 3)
 
 	def test_need_retrieve(self):
 		client = APIClient()
@@ -45,13 +62,22 @@ class NeedViewTest(TestCase):
 
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
+		
+		self.assertEqual(data['name'], 'need2')
+		self.assertEqual(data['description'], 'need2 description')
 
-		serializer = NeedSerializer(data = data)
-		valid = serializer.is_valid()
-		validated_data = serializer.validated_data
-		self.assertIs(valid, True)
-		self.assertEqual(validated_data['name'], 'need2')
-		self.assertEqual(validated_data['description'], 'need2 description')
+	# def test_need_retrieve_other_user(self):
+	# 	client = APIClient()
+	# 	client.login(username='root1', password='root')
+	# 	response = client.get('/need/3/')
+
+	# 	self.assertEqual(response.status_code, 400)
+
+	# def test_need_retrieve_no_user(self):
+	# 	client = APIClient()
+	# 	response = client.get('/need/3/')
+
+	# 	self.assertEqual(response.status_code, 400)
 
 	def test_need_update(self):
 		count = Need.objects.all().count()
@@ -65,6 +91,7 @@ class NeedViewTest(TestCase):
 			'description' : 'need2DescriptionUpdated',
 			}, format='json')
 
+		self.assertEqual(response.status_code, 200)
 		need = Need.objects.get(id=2)
 		self.assertEqual(need.name, 'need2Updated')
 		self.assertEqual(need.description, 'need2DescriptionUpdated')
@@ -78,7 +105,8 @@ class NeedViewTest(TestCase):
 
 		client = APIClient()
 		client.login(username='root1', password='root')
-		client.delete('/need/2/')
+		response = client.delete('/need/2/')
+		self.assertEqual(response.status_code, 204)
 
 		count = Need.objects.all().count()
 		self.assertEqual(count, 2)
@@ -115,7 +143,7 @@ class GoalViewTest(TestCase):
 			'need' : self.need1.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.status_code, 201)
 
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 4)
@@ -130,6 +158,7 @@ class GoalViewTest(TestCase):
 		client = APIClient()
 		client.login(username='root1', password='root')
 		response = client.get('/goal/1/')
+		self.assertEqual(response.status_code, 200)
 
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
@@ -148,13 +177,14 @@ class GoalViewTest(TestCase):
 	def test_goal_update(self):
 		client = APIClient()
 		client.login(username='root1', password='root')	
-		client.put('/goal/1/', {
+		response = client.put('/goal/1/', {
 			'name':'newNameForGoal1',
 			'description' : 'newDescriptionForGoal1',
 			'endDate' : self.today,
 			'need' : self.need2.id,
 			}, format='json')
 
+		self.assertEqual(response.status_code, 200)
 		goal = Goal.objects.get(id=1)
 		self.assertEqual(goal.name, 'newNameForGoal1')
 		self.assertEqual(goal.description, 'newDescriptionForGoal1')
@@ -168,7 +198,8 @@ class GoalViewTest(TestCase):
 
 		client = APIClient()
 		client.login(username='root1', password='root')
-		client.delete('/goal/1/')
+		response = client.delete('/goal/1/')
+		self.assertEqual(response.status_code, 204)
 
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 2)
@@ -205,7 +236,7 @@ class StepViewTest(TestCase):
 				'goal' : self.goal2.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.status_code, 201)
 		count = Step.objects.all().count()
 		self.assertEqual(count, 4)
 
@@ -221,7 +252,7 @@ class StepViewTest(TestCase):
 		client.login(username='root1', password='root')
 
 		response = client.get('/step/1/')
-
+		self.assertEqual(response.status_code, 200)
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
 
@@ -256,7 +287,7 @@ class StepViewTest(TestCase):
 		client.login(username='root1', password='root')
 
 		response = client.delete('/step/1/')
-		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.status_code, 204)
 
 		count = Step.objects.all().count()
 		self.assertEqual(count, 2)
@@ -300,7 +331,7 @@ class IterationViewTest(TestCase):
 			'goal': self.goal2.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.status_code, 201)
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 4)
 
@@ -357,6 +388,7 @@ class IterationViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		response = client.delete('/iteration/1/')
+		self.assertEqual(response.status_code, 204)
 
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 2)
@@ -416,6 +448,7 @@ class DeliveryViewTest(TestCase):
 			'completed': True,
 			}, format='json')
 
+		self.assertEqual(response.status_code, 201)
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 4)
 
@@ -471,7 +504,7 @@ class DeliveryViewTest(TestCase):
 
 		response = client.delete('/delivery/1/')
 
-		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.status_code, 204)
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 2)
 
