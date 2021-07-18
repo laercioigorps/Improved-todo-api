@@ -1,5 +1,6 @@
 from django.urls import path
 from needs import views
+from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
     path('need/', views.need_list_view),
@@ -14,3 +15,5 @@ urlpatterns = [
     path('delivery/<int:pk>/', views.delivery_detail_view),
     
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
