@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Need, Goal, Step, Iteration
-from .serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer
+from .models import Need, Goal, Step, Iteration, Delivery
+from .serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer, DeliverySerializer
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 
@@ -150,6 +150,38 @@ def iteration_detail_view(request, pk):
 		iteration.delete()
 		return HttpResponse(status=203)
 
+def delivery_list_view(request):
+	if request.method == 'GET':
+		deliveries = Delivery.objects.all()
+		serializer = DeliverySerializer(deliveries, many=True)
+		return JsonResponse(serializer.data, safe=False)
 
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		serializer = DeliverySerializer(data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JsonResponse(serializer.data)
+		return JsonResponse(serializer.errors, status= 404)
+
+def delivery_detail_view(request, pk):
+	try:
+		delivery = Delivery.objects.get(pk=pk)
+	except Delivery.DoesNotExist:
+		return HttpResponse(status=404)
+
+	if request.method == 'GET':
+		serializer = DeliverySerializer(delivery)
+		return JsonResponse(serializer.data)
+	if request.method == 'PUT':
+		data = JSONParser().parse(request)
+		serializer = DeliverySerializer(delivery, data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JsonResponse(serializer.data)
+		return JsonResponse(serializer.errors)
+	if request.method == 'DELETE':
+		delivery.delete()
+		return HttpResponse(status=200)
 
 
