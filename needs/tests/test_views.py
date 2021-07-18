@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
-from needs.models import Need, Goal, Step, Iteration
+from needs.models import Need, Goal, Step, Iteration, Delivery
 from needs.serializers import NeedSerializer
 from rest_framework.parsers import JSONParser
 import io
@@ -360,6 +360,121 @@ class IterationViewTest(TestCase):
 
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 2)
+
+
+class DeliveryViewTest(TestCase):
+
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+
+		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
+
+		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
+
+		self.step1 = Step.objects.create(name='step1', description='step1Description',
+			completed=False,goal = self.goal1)
+		self.step2 = Step.objects.create(name='step2', description='step2Description',
+			completed=False,goal = self.goal1)
+		self.step3 = Step.objects.create(name='step3', description='step3Description',
+			completed=False,goal = self.goal1)
+
+		self.iteration1 = Iteration.objects.create(number=1, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		self.iteration2 = Iteration.objects.create(number=2, completed = False,
+		date = datetime.date.today(), goal = self.goal1)
+		self.iteration3 = Iteration.objects.create(number=1, completed = True,
+		date = datetime.date.today(), goal = self.goal2)
+
+		self.delivery1 = Delivery.objects.create(name='delivery1', description='delivery1Description',
+			step = self.step1, iteration = self.iteration1, completed= False)
+		self.delivery2 = Delivery.objects.create(name='delivery2', description='delivery2Description',
+			step = self.step1, iteration = self.iteration1, completed=False)
+		self.delivery3 = Delivery.objects.create(name='delivery3', description='delivery1Description',
+			step = self.step2, iteration = self.iteration1, completed=False)
+
+	def test_delivery_list(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get('/delivery/')
+
+		self.assertEqual(response.status_code, 200)
+
+	def test_delivery_creation(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.post('/delivery/', {
+			'name' : 'newIteration',
+			'description' : 'newIterationDescription',
+			'step' : self.step2.id,
+			'iteration': self.iteration1.id,
+			'completed': True,
+			}, format='json')
+
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 4)
+
+	def test_delivery_retrieve(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/delivery/1/')
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(data['name'], 'delivery1')
+		self.assertEqual(data['description'], 'delivery1Description')
+		self.assertEqual(data['step'], self.step1.id)
+		self.assertEqual(data['iteration'], self.iteration1.id)
+		self.assertEqual(data['completed'], False)
+
+	def test_delivery_update(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.put('/delivery/1/', {
+			'name' : 'Iteration1Updated',
+			'description' : 'Iteration1DescriptionUpdated',
+			'step' : self.step2.id,
+			'iteration': self.iteration1.id,
+			'completed': True,
+			}, format='json')
+
+
+		self.assertEqual(response.status_code, 200)
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		delivery = Delivery.objects.get(id=1)
+		self.assertEqual(delivery.name, 'Iteration1Updated')
+		self.assertEqual(delivery.description, 'Iteration1DescriptionUpdated')
+		self.assertEqual(delivery.step, self.step2)
+		self.assertEqual(delivery.iteration, self.iteration1)
+		self.assertIs(delivery.completed, True)
+
+	def test_delivery_delete(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.delete('/delivery/1/')
+
+		self.assertEqual(response.status_code, 200)
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 2)
+
 
 
 
