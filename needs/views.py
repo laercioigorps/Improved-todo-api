@@ -15,7 +15,7 @@ from rest_framework import permissions
 def need_list_view(request, format=None):
 
 	if request.method == 'GET':
-		needs = Need.objects.all()
+		needs = Need.objects.filter(user = request.user)
 		serializer = NeedSerializer(needs, many=True) 
 		return Response(serializer.data)
 	if request.method == 'POST':
@@ -53,13 +53,14 @@ def need_detail_view(request, pk, format=None):
 		need.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def goal_list_view(request, format=None):
 
 	if request.method == 'GET':
-		needs = Need.objects.all()
-		serializer = NeedSerializer(needs, many= True)
+		goals = Goal.objects.filter(need__user = request.user)
+		serializer = GoalSerializer(goals, many= True)
 		return Response(serializer.data)
 
 	if request.method == 'POST':
@@ -77,6 +78,9 @@ def goal_detail_view(request, pk, format=None):
 		goal = Goal.objects.get(pk=pk)
 	except Goal.DoesNotExist:
 		return Response(status=status.HTTP_404_NOT_FOUND)
+
+	if goal.need.user != request.user:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
 
 	if request.method == 'GET':
 		serializer = GoalSerializer(goal)
@@ -97,7 +101,7 @@ def goal_detail_view(request, pk, format=None):
 @permission_classes([permissions.IsAuthenticated])
 def step_list_view(request, format=None):
 	if request.method == 'GET':
-		steps = Step.objects.all()
+		steps = Step.objects.filter(goal__need__user = request.user)
 		serializer = StepSerializer(steps, many=True)
 		return Response(serializer.data)
 
@@ -117,6 +121,10 @@ def step_detail_view(request, pk, format=None):
 		step = Step.objects.get(pk=pk)
 	except Step.DoesNotExist:
 		return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+	if step.goal.need.user != request.user:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
+
 	if request.method == 'GET':
 		serializer = StepSerializer(step)
 		return Response(serializer.data)
@@ -136,7 +144,7 @@ def step_detail_view(request, pk, format=None):
 @permission_classes([permissions.IsAuthenticated])
 def iteration_list_view(request, format=None):
 	if request.method == 'GET':
-		iterations = Iteration.objects.all()
+		iterations = Iteration.objects.filter(goal__need__user = request.user)
 		serializer = IterationSerializer(iterations, many=True)
 		return Response(serializer.data)
 	if request.method == 'POST':
@@ -155,6 +163,8 @@ def iteration_detail_view(request, pk, format=None):
 	except Iteration.DoesNotExist:
 		return Response(status=status.HTTP_404_NOT_FOUND)
 
+	if iteration.goal.need.user != request.user:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
 	if request.method == 'GET':
 		serializer = IterationSerializer(iteration)
 		return Response(serializer.data)
@@ -173,7 +183,7 @@ def iteration_detail_view(request, pk, format=None):
 @permission_classes([permissions.IsAuthenticated])
 def delivery_list_view(request, format=None):
 	if request.method == 'GET':
-		deliveries = Delivery.objects.all()
+		deliveries = Delivery.objects.filter(step__goal__need__user = request.user)
 		serializer = DeliverySerializer(deliveries, many=True)
 		return Response(serializer.data)
 	if request.method == 'POST':
@@ -192,6 +202,8 @@ def delivery_detail_view(request, pk, format=None):
 	except Delivery.DoesNotExist:
 		return Response(status=404)
 
+	if delivery.step.goal.need.user != request.user:
+		return Response(status=status.HTTP_400_BAD_REQUEST)
 	if request.method == 'GET':
 		serializer = DeliverySerializer(delivery)
 		return Response(serializer.data)
