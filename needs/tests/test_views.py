@@ -69,6 +69,12 @@ class NeedViewTest(TestCase):
 		
 		self.assertEqual(len(data), 2)
 
+	def test_need_list_no_loged_user(self):
+		client = APIClient()
+		response = client.get('/need/')
+
+		self.assertEqual(response.status_code, 403)
+
 	#==============================================test_need_retrieve======================================
 
 	def test_need_retrieve(self):
@@ -128,6 +134,19 @@ class NeedViewTest(TestCase):
 			}, format='json')
 		self.assertEqual(response.status_code, 403)
 
+	def test_need_update_other_user(self):
+		count = Need.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.put('/need/3/', 
+			{
+			'name': 'need2Updated',
+			'description' : 'need2DescriptionUpdated',
+			}, format='json')
+
+		self.assertEqual(response.status_code, 403)
 	#==============================================test_need_delete=======================================
 
 	def test_need_delete(self):
@@ -150,6 +169,18 @@ class NeedViewTest(TestCase):
 		response = client.delete('/need/2/')
 		self.assertEqual(response.status_code, 403)
 
+	def test_need_delete_from_other_user(self):
+		count = Need.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.delete('/need/3/')
+		self.assertEqual(response.status_code, 403)
+
+		count = Need.objects.all().count()
+		self.assertEqual(count, 3)
+
 
 class GoalViewTest(TestCase):
 
@@ -159,7 +190,7 @@ class GoalViewTest(TestCase):
 
 		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
 		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
-		self.need3 = Need.objects.create(name='need3', description='need3 description', user=self.user1)
+		self.need3 = Need.objects.create(name='need3', description='need3 description', user=self.user2)
 
 		self.today = datetime.date.today()
 		self.goal1 = Goal.objects.create(name="goal1",description='goal1Description',
@@ -167,7 +198,8 @@ class GoalViewTest(TestCase):
 		self.goal2 = Goal.objects.create(name="goal2",description='goal2Description',
 			endDate=self.today, need=self.need1)
 		self.goal3 = Goal.objects.create(name="goal3",description='goal3Description',
-			endDate=self.today, need=self.need1)
+			endDate=self.today, need=self.need3)
+
 
 	#==============================================test_goal_create=======================================
 
@@ -235,6 +267,13 @@ class GoalViewTest(TestCase):
 		response = client.get('/goal/1/')
 		self.assertEqual(response.status_code, 403)
 
+	def test_goal_retrieve_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/goal/3/')
+		self.assertEqual(response.status_code, 400)
+
 	#==============================================test_goal_list=======================================
 
 	def test_goal_list(self):
@@ -242,6 +281,10 @@ class GoalViewTest(TestCase):
 		client.login(username='root1', password='root')
 		response = client.get('/goal/')
 		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data), 2)
 
 	def test_goal_list_no_loged_user(self):
 		client = APIClient()
@@ -278,6 +321,18 @@ class GoalViewTest(TestCase):
 
 		self.assertEqual(response.status_code, 403)
 
+	def test_goal_update_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')	
+		response = client.put('/goal/3/', {
+			'name':'newNameForGoal1',
+			'description' : 'newDescriptionForGoal1',
+			'endDate' : self.today,
+			'need' : self.need2.id,
+			}, format='json')
+
+		self.assertEqual(response.status_code, 400)
+
 	#==============================================test_goal_delete=======================================
 
 	def test_goal_delete(self):
@@ -303,23 +358,36 @@ class GoalViewTest(TestCase):
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 3)
 
+	def test_goal_delete_from_other_user(self):
+		count = Goal.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.delete('/goal/3/')
+		self.assertEqual(response.status_code, 400)
+
+		count = Goal.objects.all().count()
+		self.assertEqual(count, 3)
+
 class StepViewTest(TestCase):
 
 	def setUp(self):
-		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+		self.user1 = User.objects.create_user('root1','email1@exemple.com','root')
+		self.user2 = User.objects.create_user('root2','email2@exemple.com','root')
 
 		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
-		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user2)
 
 		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
-		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need2)
 
 		self.step1 = Step.objects.create(name='step1', description='step1Description',
 			completed=False,goal = self.goal1)
 		self.step2 = Step.objects.create(name='step2', description='step2Description',
 			completed=False,goal = self.goal1)
 		self.step3 = Step.objects.create(name='step3', description='step3Description',
-			completed=False,goal = self.goal1)
+			completed=False,goal = self.goal2)
 
 	#==============================================test_step_create=======================================
 
@@ -367,6 +435,11 @@ class StepViewTest(TestCase):
 		response = client.get('/step/')
 		self.assertEqual(response.status_code, 200)
 
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data), 2)
+		
+
 	def test_step_list_no_loged_user(self):
 		client = APIClient()
 
@@ -394,6 +467,13 @@ class StepViewTest(TestCase):
 
 		response = client.get('/step/1/')
 		self.assertEqual(response.status_code, 403)
+
+	def test_step_retrieve_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/step/3/')
+		self.assertEqual(response.status_code, 400)
 		
 	#==============================================test_step_update=======================================
 
@@ -427,6 +507,19 @@ class StepViewTest(TestCase):
 		
 		self.assertEqual(response.status_code, 403)
 
+	def test_step_update_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.put('/step/3/', {
+			'name' : 'step1Updated',
+			'description' : 'step1DescriptionUpdated',
+			'completed' : True,
+			'goal' : self.goal2.id,
+			}, format='json')
+		
+		self.assertEqual(response.status_code, 400)
+
 	#==============================================test_step_delete=======================================
 
 	def test_step_delete(self):
@@ -454,17 +547,31 @@ class StepViewTest(TestCase):
 		count = Step.objects.all().count()
 		self.assertEqual(count, 3)
 
+	def test_step_delete_from_other_user(self):
+		count = Step.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.delete('/step/3/')
+		self.assertEqual(response.status_code, 400)
+
+		count = Step.objects.all().count()
+		self.assertEqual(count, 3)
+
 
 class IterationViewTest(TestCase):
 
 	def setUp(self):
-		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+		self.user1 = User.objects.create_user('root1','email1@exemple.com','root')
+		self.user2 = User.objects.create_user('root2','email2@exemple.com','root')
 
 		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
-		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user2)
 
 		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
-		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need2)
 
 		self.step1 = Step.objects.create(name='step1', description='step1Description',
 			completed=False,goal = self.goal1)
@@ -524,8 +631,12 @@ class IterationViewTest(TestCase):
 		client = APIClient()
 		client.login(username='root1', password='root')
 		response = client.get('/iteration/')
-
 		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data) , 2)
+		
 
 	def test_iteration_list_no_loged_user(self):
 		client = APIClient()
@@ -571,6 +682,19 @@ class IterationViewTest(TestCase):
 			}, format='json')
 		self.assertEqual(response.status_code, 403)
 
+	def test_iteration_update_from_other_user(self):
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.put('/iteration/3/', {
+			'number' : 2,
+			'completed' : True,
+			'date' : datetime.date.today(),
+			'goal': self.goal2.id,
+			}, format='json')
+		self.assertEqual(response.status_code, 400)
+
 	#==============================================test_iteration_retrieve===================================
 
 	def test_iteration_retrieve(self):
@@ -593,6 +717,13 @@ class IterationViewTest(TestCase):
 
 		response = client.get('/iteration/1/')
 		self.assertEqual(response.status_code, 403)
+
+	def test_iteration_retrieve_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/iteration/3/')
+		self.assertEqual(response.status_code, 400)
 
 	#==============================================test_iteration_delete===================================
 
@@ -621,22 +752,36 @@ class IterationViewTest(TestCase):
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 3)
 
+	def test_iteration_delete_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
+		response = client.delete('/iteration/3/')
+		self.assertEqual(response.status_code, 400)
+
+		count = Iteration.objects.all().count()
+		self.assertEqual(count, 3)
+
 
 class DeliveryViewTest(TestCase):
 
 	def setUp(self):
-		self.user1 = User.objects.create_user('root1','email2@exemple.com','root')
+		self.user1 = User.objects.create_user('root1','email1@exemple.com','root')
+		self.user2 = User.objects.create_user('root2','email2@exemple.com','root')
 
 		self.need1 = Need.objects.create(name='need1', description='need1 description', user=self.user1)
-		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user1)
+		self.need2 = Need.objects.create(name='need2', description='need2 description', user=self.user2)
 
 		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
-		self.goal2 = Goal.objects.create(name="goal2", need=self.need1)
+		self.goal2 = Goal.objects.create(name="goal2", need=self.need2)
 
 		self.step1 = Step.objects.create(name='step1', description='step1Description',
 			completed=False,goal = self.goal1)
 		self.step2 = Step.objects.create(name='step2', description='step2Description',
-			completed=False,goal = self.goal1)
+			completed=False,goal = self.goal2)
 		self.step3 = Step.objects.create(name='step3', description='step3Description',
 			completed=False,goal = self.goal1)
 
@@ -652,7 +797,7 @@ class DeliveryViewTest(TestCase):
 		self.delivery2 = Delivery.objects.create(name='delivery2', description='delivery2Description',
 			step = self.step1, iteration = self.iteration1, completed=False)
 		self.delivery3 = Delivery.objects.create(name='delivery3', description='delivery1Description',
-			step = self.step2, iteration = self.iteration1, completed=False)
+			step = self.step2, iteration = self.iteration3, completed=False)
 
 	#==============================================test_delivery_create===================================
 
@@ -702,6 +847,12 @@ class DeliveryViewTest(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 2)
+
+
 	def test_delivery_list_no_loged_user(self):
 		client = APIClient()
 		response = client.get('/delivery/')
@@ -731,6 +882,13 @@ class DeliveryViewTest(TestCase):
 
 		response = client.get('/delivery/1/')
 		self.assertEqual(response.status_code, 403)
+
+	def test_delivery_retrieve_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get('/delivery/3/')
+		self.assertEqual(response.status_code, 400)
 
 	#==============================================test_delivery_update===================================
 
@@ -774,9 +932,20 @@ class DeliveryViewTest(TestCase):
 			'iteration': self.iteration1.id,
 			'completed': True,
 			}, format='json')
-
-
 		self.assertEqual(response.status_code, 403)
+
+	def test_delivery_update_from_other_user(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.put('/delivery/3/', {
+			'name' : 'Iteration1Updated',
+			'description' : 'Iteration1DescriptionUpdated',
+			'step' : self.step2.id,
+			'iteration': self.iteration1.id,
+			'completed': True,
+			}, format='json')
+		self.assertEqual(response.status_code, 400)
 
 	#==============================================test_delivery_delete===================================
 
@@ -802,6 +971,19 @@ class DeliveryViewTest(TestCase):
 		response = client.delete('/delivery/1/')
 
 		self.assertEqual(response.status_code, 403)
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+	def test_delivery_delete_from_other_user(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.delete('/delivery/3/')
+
+		self.assertEqual(response.status_code, 400)
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 3)
 
