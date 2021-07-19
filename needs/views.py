@@ -33,7 +33,10 @@ def need_detail_view(request, pk, format=None):
 	try:
 		need = Need.objects.get(pk=pk)
 	except Need.DoesNotExist:
-		return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+		return Response(status=status.HTTP_404_NOT_FOUND)
+
+	if request.user != need.user:
+		return Response(status=status.HTTP_403_FORBIDDEN)
 
 	if request.method == 'GET':
 		serializer = NeedSerializer(need)
@@ -45,7 +48,7 @@ def need_detail_view(request, pk, format=None):
 		if serializer.is_valid():
 			serializer.save()
 			return Response(serializer.data)
-		return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	if request.method == 'DELETE':
 		need.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
@@ -167,6 +170,7 @@ def iteration_detail_view(request, pk, format=None):
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
 def delivery_list_view(request, format=None):
 	if request.method == 'GET':
 		deliveries = Delivery.objects.all()
@@ -181,6 +185,7 @@ def delivery_list_view(request, format=None):
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
 def delivery_detail_view(request, pk, format=None):
 	try:
 		delivery = Delivery.objects.get(pk=pk)
