@@ -292,15 +292,25 @@ class GoalViewTest(TestCase):
 		response = client.get(reverse('needs:goal_list'))
 		self.assertEqual(response.status_code, 403)
 
-	# def test_goal_list_by_need(self):
-	# 	client = APIClient()
-	# 	client.login(username='root1', password='root')
-	# 	response = client.get(reverse('needs:goal_list_by_need', kwargs={'pk':1,'need':1}))
-	# 	self.assertEqual(response.status_code, 200)
+	def test_goal_list_by_need(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get(reverse('needs:goal_list_by_need', kwargs={'need':1}))
+		self.assertEqual(response.status_code, 200)
 
-	# 	stream = io.BytesIO(response.content)
-	# 	data = JSONParser().parse(stream)
-	# 	self.assertEqual(len(data), 2)
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data), 2)
+
+		self.goal2 = Goal.objects.create(name="goal2",description='goal2Description',
+			endDate=self.today, need=self.need2)
+
+		response = client.get(reverse('needs:goal_list_by_need', kwargs={'need':1}))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data), 2)
 
 	#==============================================test_goal_update=======================================
 
@@ -392,6 +402,7 @@ class StepViewTest(TestCase):
 
 		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
 		self.goal2 = Goal.objects.create(name="goal2", need=self.need2)
+		self.goal3 = Goal.objects.create(name="goal1", need=self.need1)
 
 		self.step1 = Step.objects.create(name='step1', description='step1Description',
 			completed=False,goal = self.goal1)
@@ -456,6 +467,29 @@ class StepViewTest(TestCase):
 
 		response = client.get(reverse('needs:step_list'))
 		self.assertEqual(response.status_code, 403)
+
+	def test_step_list_by_goal(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get(reverse('needs:step_list_by_goal',kwargs={'goal' : 1}))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data), 2)
+
+		self.step3 = Step.objects.create(name='step4', description='step4Description',
+			completed=False,goal = self.goal3)
+
+		response = client.get(reverse('needs:step_list_by_goal',kwargs={'goal' : 1}))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data), 2)
+
+
 
 	#==============================================test_step_retrieve======================================
 
@@ -583,6 +617,7 @@ class IterationViewTest(TestCase):
 
 		self.goal1 = Goal.objects.create(name="goal1", need=self.need1)
 		self.goal2 = Goal.objects.create(name="goal2", need=self.need2)
+		self.goal3 = Goal.objects.create(name="goal1", need=self.need1)
 
 		self.step1 = Step.objects.create(name='step1', description='step1Description',
 			completed=False,goal = self.goal1)
@@ -653,6 +688,36 @@ class IterationViewTest(TestCase):
 		client = APIClient()
 		response = client.get(reverse('needs:iteration_list'))
 		self.assertEqual(response.status_code, 403)
+
+	def test_iteration_list_by_goal(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get(reverse('needs:iteration_list_by_goal', kwargs={'goal': 1}))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data) , 2)
+
+		Iteration.objects.create(number=1, completed = True,
+		date = datetime.date.today(), goal = self.goal3)
+
+		response = client.get(reverse('needs:iteration_list_by_goal', kwargs={'goal': 1}))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data) , 2)
+
+		Iteration.objects.create(number=1, completed = True,
+		date = datetime.date.today(), goal = self.goal1)
+
+		response = client.get(reverse('needs:iteration_list_by_goal', kwargs={'goal': 1}))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+		self.assertEqual(len(data) , 3)
 
 	#==============================================test_iteration_update===================================
 
@@ -869,6 +934,79 @@ class DeliveryViewTest(TestCase):
 		response = client.get(reverse('needs:delivery_list'))
 
 		self.assertEqual(response.status_code, 403)
+
+	def test_delivery_list_by_step(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get(reverse('needs:delivery_list_by_step', kwargs={'step':1}))
+
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 2)
+
+		Delivery.objects.create(name='delivery3', description='delivery1Description',
+			step = self.step3, iteration = self.iteration3, completed=False)
+
+		response = client.get(reverse('needs:delivery_list_by_step', kwargs={'step':1}))
+
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 2)
+
+		Delivery.objects.create(name='delivery3', description='delivery1Description',
+			step = self.step1, iteration = self.iteration3, completed=False)
+
+		response = client.get(reverse('needs:delivery_list_by_step', kwargs={'step':1}))
+
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 3)
+
+	def test_delivery_list_by_iteration(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+		response = client.get(reverse('needs:delivery_list_by_iteration', kwargs={'iteration':1}))
+
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 2)
+
+		Delivery.objects.create(name='delivery3', description='delivery1Description',
+			step = self.step3, iteration = self.iteration2, completed=False)
+
+		response = client.get(reverse('needs:delivery_list_by_iteration', kwargs={'iteration':1}))
+
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 2)
+
+		Delivery.objects.create(name='delivery3', description='delivery1Description',
+			step = self.step1, iteration = self.iteration1, completed=False)
+
+		response = client.get(reverse('needs:delivery_list_by_iteration', kwargs={'iteration':1}))
+
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data) , 3)
+
 
 	#==============================================test_delivery_retrieve===================================
 
