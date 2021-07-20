@@ -71,6 +71,16 @@ def goal_list_view(request, format=None):
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def goal_list_by_need_view(request, need, format=None):
+
+	if request.method == 'GET':
+		goals = Goal.objects.filter(need__user = request.user).filter(need = need)
+		serializer = GoalSerializer(goals, many= True)
+		return Response(serializer.data)
+
+
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def goal_detail_view(request, pk, format=None):
@@ -113,6 +123,13 @@ def step_list_view(request, format=None):
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def step_list_by_goal_view(request, goal,  format=None):
+	if request.method == 'GET':
+		steps = Step.objects.filter(goal__need__user = request.user).filter(goal = goal)
+		serializer = StepSerializer(steps, many=True)
+		return Response(serializer.data)
 
 @api_view(['GET','PUT', 'DELETE'])
 @permission_classes([permissions.IsAuthenticated])
@@ -155,6 +172,14 @@ def iteration_list_view(request, format=None):
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(response.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def iteration_list_by_goal_view(request, goal, format=None):
+	if request.method == 'GET':
+		iterations = Iteration.objects.filter(goal__need__user = request.user).filter(goal=goal)
+		serializer = IterationSerializer(iterations, many=True)
+		return Response(serializer.data)
+
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def iteration_detail_view(request, pk, format=None):
@@ -193,6 +218,22 @@ def delivery_list_view(request, format=None):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def delivery_list_by_step_view(request, step, format=None):
+	if request.method == 'GET':
+		deliveries = Delivery.objects.filter(step__goal__need__user = request.user).filter(step=step)
+		serializer = DeliverySerializer(deliveries, many=True)
+		return Response(serializer.data)
+
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def delivery_list_by_iteration_view(request, iteration, format=None):
+	if request.method == 'GET':
+		deliveries = Delivery.objects.filter(step__goal__need__user = request.user).filter(iteration=iteration)
+		serializer = DeliverySerializer(deliveries, many=True)
+		return Response(serializer.data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([permissions.IsAuthenticated])
