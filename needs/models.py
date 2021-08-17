@@ -22,7 +22,6 @@ class Step(models.Model):
 	completed = models.BooleanField(default=False)
 	goal = models.ForeignKey(Goal, on_delete=models.CASCADE)
 
-
 class Iteration(models.Model):
 	number = models.IntegerField(default = 0)
 	completed = models.BooleanField(default=False)

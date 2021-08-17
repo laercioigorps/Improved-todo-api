@@ -68,7 +68,9 @@ class NeedViewTest(TestCase):
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
 		
+		print(response.content)
 		self.assertEqual(len(data), 2)
+
 
 	def test_need_list_no_loged_user(self):
 		client = APIClient()
