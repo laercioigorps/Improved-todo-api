@@ -801,7 +801,7 @@ class IterationViewTest(TestCase):
 		client.login(username='root1', password='root')
 
 		response = client.get(reverse('needs:iteration_detail', kwargs={'pk':3}))
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 401)
 
 	#==============================================test_iteration_delete===================================
 

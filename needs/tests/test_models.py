@@ -228,5 +228,12 @@ class DelivelyModelTest(TestCase):
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 4)
 
+	def test_delivery_creation_without_iteration(self):
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 3)
+		delivery4 = Delivery.objects.create(name='delivery4', description='delivery4',
+			step = self.step1, completed= False)
+		count = Delivery.objects.all().count()
+		self.assertEqual(count, 4)
 	
 

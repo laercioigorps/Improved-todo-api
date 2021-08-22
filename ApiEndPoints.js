@@ -116,7 +116,19 @@ var a = fetch('https://whispering-peak-32557.herokuapp.com/rest-auth/registratio
  }).then((response) => res = response.json())
   
   a.then((result)=> res = result)
+//or------------------------------
 
+var tok = ""
+
+var a = fetch('http://127.0.0.1:8000/rest-auth/registration/', { 
+   method: 'post', 
+   headers: new Headers({
+     'Content-Type': 'application/x-www-form-urlencoded'
+   }), 
+   body: 'username=nnn&password1=meunovousuario&password2=meunovousuario'
+ }).then(function(res) {
+    return res.json();
+   })
 
   //register user test with errors
 
@@ -135,3 +147,10 @@ var a = fetch('https://whispering-peak-32557.herokuapp.com/rest-auth/registratio
     });
   
   a.then((result)=> res = result)
+
+
+
+
+
+
+//admin token 09a276313a34d131a354a105d1b8ff515e942803

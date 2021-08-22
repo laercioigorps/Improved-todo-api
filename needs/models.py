@@ -32,7 +32,7 @@ class Delivery(models.Model):
 	name = models.CharField(max_length=30)
 	description = models.CharField(max_length=100)
 	step = models.ForeignKey(Step, on_delete=models.CASCADE)
-	iteration = models.ForeignKey(Iteration, on_delete=models.CASCADE)
+	iteration = models.ForeignKey(Iteration, on_delete=models.CASCADE, null = True)
 	completed = models.BooleanField(default=False)
 
 
