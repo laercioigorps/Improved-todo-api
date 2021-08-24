@@ -1139,7 +1139,109 @@ class DeliveryViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 
+class UserViewTest(TestCase):
+
+	def setUp(self):
+		self.user1 = User.objects.create_user('root1','email1@exemple.com','root')
+		self.user2 = User.objects.create_user('root2','email2@exemple.com','root')
+
+	def test_user_creation(self):
+		count = User.objects.all().count()
+		self.assertEqual(count, 2)
+
+		client = APIClient()
+
+		response = client.post('/rest-auth/registration/', 
+			{
+			'username': 'newNeed',
+			'email': 'aiaiai@gmail.com',
+			'password1' : 'newneedDescription',
+			'password2' : 'newneedDescription',
+			}, format='json')
+		
+		count = User.objects.all().count()
+		self.assertEqual(count, 3)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(data['key'],data['key'])
+		# self.assertEqual(response.status_code , 201)
+
+		# count = Need.objects.all().count()
+		# self.assertEqual(count, 4)
+		
+		# need = Need.objects.get(id=4)
+		# self.assertEqual(need.description, 'newneedDescription')
+		# self.assertEqual(need.name, 'newNeed')
+		# self.assertEqual(need.user, self.user1
+
+	def test_user_login(self):
+
+		client = APIClient()
+
+		response = client.post('/rest-auth/registration/', 
+			{
+			'username': 'newNeed',
+			'email': 'aiaiai@gmail.com',
+			'password1' : 'newneedDescription',
+			'password2' : 'newneedDescription',
+			}, format='json')
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		key = data['key']
+
+		response = client.post('/rest-auth/login/', 
+			{
+			'username': 'newNeed',
+			'password' : 'newneedDescription',
+			}, format='json')
+		
+		count = User.objects.all().count()
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(key, data['key'])
+
+	def test_new_user_wizard(self):
+		client = APIClient()
+
+		response = client.post('/rest-auth/registration/', 
+			{
+			'username': 'newNeed',
+			'email': 'aiaiai@gmail.com',
+			'password1' : 'newneedDescription',
+			'password2' : 'newneedDescription',
+			}, format='json')
+
+		self.assertEqual(response.status_code, 201)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		key = data['key']
+
+		client2 = APIClient()
+		client2.credentials(HTTP_AUTHORIZATION='Token ' + key)
+
+
+		response = client2.get(reverse('needs:need_list'), format='json')
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data), 0)
+
+		response = client2.post(reverse('/wizard/'), format='json')
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(len(data), 5)
+
 
 
 		
-
