@@ -20,6 +20,7 @@ urlpatterns = [
     path('iteration/<int:iteration>/delivery/', views.delivery_list_by_iteration_view,
     name='delivery_list_by_iteration'),
     path('delivery/<int:pk>/', views.delivery_detail_view, name='delivery_detail'),
+     path('wizard/', views.wizard_view, name='wizard'),
     
 ]
 

@@ -258,5 +258,22 @@ def delivery_detail_view(request, pk, format=None):
 	if request.method == 'DELETE':
 		delivery.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
+		
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def wizard_view(request, format=None):
+	if request.method == 'POST':
+		needs = Need.objects.filter(user=request.user)
+		if(needs.count() == 0):
+			Need.objects.create(name='Health', description='need1 description', user=request.user)
+			Need.objects.create(name='Finance', description='need2 description', user=request.user)
+			Need.objects.create(name='Professional', description='need3 description', user=request.user)
+			Need.objects.create(name='Mind', description='need4 description', user=request.user)
+			Need.objects.create(name='Others', description='need5 description', user=request.user)
+			
+			return Response(status=200)
+		return Response(status=404)
+
 
 

@@ -1235,8 +1235,11 @@ class UserViewTest(TestCase):
 
 		self.assertEqual(len(data), 0)
 
-		response = client2.post(reverse('/wizard/'), format='json')
+		response = client2.post(reverse('needs:wizard'), format='json')
+		self.assertEqual(response.status_code, 200)
 
+		
+		response = client2.get(reverse('needs:need_list'), format='json')
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
 
