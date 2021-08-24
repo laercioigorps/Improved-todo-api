@@ -30,4 +30,4 @@ class DeliverySerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Delivery
-		fields = ['name', 'description', 'step', 'iteration', 'completed']
+		fields = ['id','name', 'description', 'step', 'iteration', 'completed']
