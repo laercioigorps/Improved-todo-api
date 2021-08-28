@@ -803,6 +803,22 @@ class IterationViewTest(TestCase):
 		response = client.get(reverse('needs:iteration_detail', kwargs={'pk':3}))
 		self.assertEqual(response.status_code, 401)
 
+
+	def test_active_iteration_retrieve(self):
+		client = APIClient()
+		client.login(username='root1', password='root')
+
+		response = client.get(reverse('needs:active_iteration'))
+		self.assertEqual(response.status_code, 200)
+
+		stream = io.BytesIO(response.content)
+		data = JSONParser().parse(stream)
+
+		self.assertEqual(data['number'], self.iteration3.number)
+		self.assertEqual(data['completed'], self.iteration3.completed)
+		self.assertEqual(data['date'], self.iteration3.date)
+		self.assertEqual(data['goal'], self.iteration3.goal)
+
 	#==============================================test_iteration_delete===================================
 
 	def test_iteration_delete(self):
