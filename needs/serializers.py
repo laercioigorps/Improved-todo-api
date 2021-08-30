@@ -24,7 +24,7 @@ class IterationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Iteration
-		fields = ['id', 'number', 'completed', 'date', 'goal']
+		fields = ['id', 'number', 'completed', 'date']
 
 class DeliverySerializer(serializers.ModelSerializer):
 

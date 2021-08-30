@@ -170,14 +170,14 @@ class IterationModelTest(TestCase):
 		self.goal3 = Goal.objects.create(name="goal3", need= self.need2)
 
 		self.iteration1 = Iteration.objects.create(number=1, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		
 
 	def test_Iteration_creation(self):
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 1)
 		Iteration.objects.create(number=2, completed = False,
-		date = datetime.date.today(), goal = self.goal2)
+		date = datetime.date.today(), owner = self.user1)
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 2)
 
@@ -203,7 +203,7 @@ class DelivelyModelTest(TestCase):
 		self.goal3 = Goal.objects.create(name="goal3", need= self.need2)
 
 		self.iteration1 = Iteration.objects.create(number=1, completed= False,
-		date = datetime.date.today(), goal=self.goal1)
+		date = datetime.date.today(), owner=self.user1)
 
 		self.step1 = Step.objects.create(name='first step', description='I like it',
 		 completed=False, goal=self.goal1)

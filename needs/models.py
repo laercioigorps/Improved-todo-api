@@ -26,7 +26,7 @@ class Iteration(models.Model):
 	number = models.IntegerField(default = 0)
 	completed = models.BooleanField(default=False)
 	date = models.DateField(auto_now_add=False, null=True)
-	goal = models.ForeignKey(Goal, on_delete=models.CASCADE)
+	owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
 class Delivery(models.Model):
 	name = models.CharField(max_length=30)

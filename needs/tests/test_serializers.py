@@ -199,11 +199,11 @@ class IterationSerializerTest(TestCase):
 			completed=False,goal = self.goal1)
 
 		self.iteration1 = Iteration.objects.create(number=1, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration2 = Iteration.objects.create(number=2, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration3 = Iteration.objects.create(number=1, completed = True,
-		date = datetime.date.today(), goal = self.goal2)
+		date = datetime.date.today(), owner = self.user1)
 
 
 	def test_iteration_creation(self):
@@ -211,7 +211,7 @@ class IterationSerializerTest(TestCase):
 		self.assertEqual(count, 3)
 
 		iteration = Iteration(number=2, completed=False,
-		date=datetime.date.today(), goal=self.goal1)
+		date=datetime.date.today(), owner=self.user1)
 
 		iterationSerializer = IterationSerializer(iteration)
 		data = get_json_data(iterationSerializer.data)
@@ -229,7 +229,7 @@ class IterationSerializerTest(TestCase):
 		iteration.completed = True
 		nextWeekDate = datetime.date.today() + datetime.timedelta(days=7)
 		iteration.date = nextWeekDate
-		iteration.goal = self.goal2
+		iteration.owner = self.user1
 
 		iterationSerializer = IterationSerializer(iteration)
 		data = get_json_data(iterationSerializer.data)
@@ -245,7 +245,7 @@ class IterationSerializerTest(TestCase):
 		self.assertEqual(getIteration.number, 2)
 		self.assertEqual(getIteration.completed, True)
 		self.assertEqual(getIteration.date, nextWeekDate)
-		self.assertEqual(getIteration.goal, self.goal2)
+		self.assertEqual(getIteration.owner, self.user1)
 
 class DeliverySerializerTest(TestCase):
 
@@ -266,11 +266,11 @@ class DeliverySerializerTest(TestCase):
 			completed=False,goal = self.goal1)
 
 		self.iteration1 = Iteration.objects.create(number=1, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration2 = Iteration.objects.create(number=2, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration3 = Iteration.objects.create(number=1, completed = True,
-		date = datetime.date.today(), goal = self.goal2)
+		date = datetime.date.today(), owner = self.user1)
 
 		self.delivery1 = Delivery.objects.create(name='delivery1', description='delivery1Description',
 			step = self.step1, iteration = self.iteration1, completed= False)

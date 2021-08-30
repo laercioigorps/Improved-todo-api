@@ -25,7 +25,7 @@ class NeedViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.post(reverse('needs:need_list'), 
 			{
 			'name': 'newNeed',
@@ -51,7 +51,7 @@ class NeedViewTest(TestCase):
 			'name': 'newNeed',
 			'description' : 'newneedDescription',
 			}, format='json')
-		self.assertEqual(response.status_code , 403)
+		self.assertEqual(response.status_code , 401)
 
 		count = Need.objects.all().count()
 		self.assertEqual(count, 3)
@@ -60,7 +60,7 @@ class NeedViewTest(TestCase):
 
 	def test_need_list(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:need_list'))
 
 		self.assertEqual(response.status_code, 200)
@@ -68,7 +68,7 @@ class NeedViewTest(TestCase):
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
 		
-		print(response.content)
+		
 		self.assertEqual(len(data), 2)
 
 
@@ -76,13 +76,13 @@ class NeedViewTest(TestCase):
 		client = APIClient()
 		response = client.get(reverse('needs:need_list'))
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	#==============================================test_need_retrieve======================================
 
 	def test_need_retrieve(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:need_detail', kwargs={'pk':2}))
 
 		self.assertEqual(response.status_code, 200)
@@ -97,11 +97,11 @@ class NeedViewTest(TestCase):
 		client = APIClient()
 		response = client.get(reverse('needs:need_detail', kwargs={'pk':2}))
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_need_retrieve_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:need_detail', kwargs={'pk':3}))
 
 		self.assertEqual(response.status_code, 403)
@@ -113,7 +113,7 @@ class NeedViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.put(reverse('needs:need_detail', kwargs={'pk':2}), 
 			{
 			'name': 'need2Updated',
@@ -135,14 +135,14 @@ class NeedViewTest(TestCase):
 			'name': 'need2Updated',
 			'description' : 'need2DescriptionUpdated',
 			}, format='json')
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_need_update_other_user(self):
 		count = Need.objects.all().count()
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.put(reverse('needs:need_detail', kwargs={'pk':3}), 
 			{
 			'name': 'need2Updated',
@@ -157,7 +157,7 @@ class NeedViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.delete(reverse('needs:need_detail', kwargs={'pk':2}))
 		self.assertEqual(response.status_code, 204)
 
@@ -170,14 +170,14 @@ class NeedViewTest(TestCase):
 
 		client = APIClient()
 		response = client.delete(reverse('needs:need_detail', kwargs={'pk':2}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_need_delete_from_other_user(self):
 		count = Need.objects.all().count()
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.delete(reverse('needs:need_detail', kwargs={'pk':3}))
 		self.assertEqual(response.status_code, 403)
 
@@ -212,7 +212,7 @@ class GoalViewTest(TestCase):
 		endDate = datetime.date.today()
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.post(reverse('needs:goal_list'), {
 			'name' : 'newGoal',
 			'description' : 'newGoalDescription',
@@ -244,7 +244,7 @@ class GoalViewTest(TestCase):
 			'need' : self.need1.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 3)
@@ -253,7 +253,7 @@ class GoalViewTest(TestCase):
 
 	def test_goal_retrieve(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:goal_detail', kwargs={'pk': 1}))
 		self.assertEqual(response.status_code, 200)
 
@@ -268,20 +268,20 @@ class GoalViewTest(TestCase):
 	def test_goal_retrieve_no_loged_user(self):
 		client = APIClient()
 		response = client.get(reverse('needs:goal_detail', kwargs={'pk': 1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_goal_retrieve_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get('/goal/3/')
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 	#==============================================test_goal_list=======================================
 
 	def test_goal_list(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:goal_list'))
 		self.assertEqual(response.status_code, 200)
 
@@ -292,11 +292,11 @@ class GoalViewTest(TestCase):
 	def test_goal_list_no_loged_user(self):
 		client = APIClient()
 		response = client.get(reverse('needs:goal_list'))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_goal_list_by_need(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:goal_list_by_need', kwargs={'need':1}))
 		self.assertEqual(response.status_code, 200)
 
@@ -318,7 +318,7 @@ class GoalViewTest(TestCase):
 
 	def test_goal_update(self):
 		client = APIClient()
-		client.login(username='root1', password='root')	
+		client.force_authenticate(user=self.user1)
 		response = client.put(reverse('needs:goal_detail', kwargs={'pk': 1}), {
 			'name':'newNameForGoal1',
 			'description' : 'newDescriptionForGoal1',
@@ -342,11 +342,11 @@ class GoalViewTest(TestCase):
 			'need' : self.need2.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_goal_update_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')	
+		client.force_authenticate(user=self.user1)
 		response = client.put(reverse('needs:goal_detail', kwargs={'pk': 3}), {
 			'name':'newNameForGoal1',
 			'description' : 'newDescriptionForGoal1',
@@ -354,7 +354,7 @@ class GoalViewTest(TestCase):
 			'need' : self.need2.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 	#==============================================test_goal_delete=======================================
 
@@ -363,7 +363,7 @@ class GoalViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.delete(reverse('needs:goal_detail', kwargs={'pk': 1}))
 		self.assertEqual(response.status_code, 204)
 
@@ -376,7 +376,7 @@ class GoalViewTest(TestCase):
 
 		client = APIClient()
 		response = client.delete(reverse('needs:goal_detail', kwargs={'pk': 1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 3)
@@ -386,9 +386,9 @@ class GoalViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.delete(reverse('needs:goal_detail', kwargs={'pk': 3}))
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 		count = Goal.objects.all().count()
 		self.assertEqual(count, 3)
@@ -420,7 +420,7 @@ class StepViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.post(reverse('needs:step_list'),{
 				'name' : 'newStep',
@@ -446,7 +446,7 @@ class StepViewTest(TestCase):
 				'goal' : self.goal2.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 		count = Step.objects.all().count()
 		self.assertEqual(count, 3)
 
@@ -454,7 +454,7 @@ class StepViewTest(TestCase):
 
 	def test_step_list(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:step_list'))
 		self.assertEqual(response.status_code, 200)
@@ -468,11 +468,11 @@ class StepViewTest(TestCase):
 		client = APIClient()
 
 		response = client.get(reverse('needs:step_list'))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_step_list_by_goal(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:step_list_by_goal',kwargs={'goal' : 1}))
 		self.assertEqual(response.status_code, 200)
@@ -497,7 +497,7 @@ class StepViewTest(TestCase):
 
 	def test_step_retrieve(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:step_detail', kwargs={'pk' : 1}))
 		self.assertEqual(response.status_code, 200)
@@ -511,22 +511,21 @@ class StepViewTest(TestCase):
 
 	def test_step_retrieve_no_loged_user(self):
 		client = APIClient()
-
 		response = client.get(reverse('needs:step_detail', kwargs={'pk' : 1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_step_retrieve_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:step_detail', kwargs={'pk' : 3}))
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 		
 	#==============================================test_step_update=======================================
 
 	def test_step_update(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.put(reverse('needs:step_detail', kwargs={'pk' : 1}), {
 			'name' : 'step1Updated',
@@ -552,11 +551,11 @@ class StepViewTest(TestCase):
 			'goal' : self.goal2.id,
 			}, format='json')
 		
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_step_update_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.put(reverse('needs:step_detail', kwargs={'pk' : 3}), {
 			'name' : 'step1Updated',
@@ -565,7 +564,7 @@ class StepViewTest(TestCase):
 			'goal' : self.goal2.id,
 			}, format='json')
 		
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 	#==============================================test_step_delete=======================================
 
@@ -574,7 +573,7 @@ class StepViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.delete(reverse('needs:step_detail', kwargs={'pk' : 1}))
 		self.assertEqual(response.status_code, 204)
@@ -589,7 +588,7 @@ class StepViewTest(TestCase):
 		client = APIClient()
 
 		response = client.delete(reverse('needs:step_detail', kwargs={'pk' : 1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 		count = Step.objects.all().count()
 		self.assertEqual(count, 3)
@@ -599,10 +598,10 @@ class StepViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.delete(reverse('needs:step_detail', kwargs={'pk' : 3}))
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 		count = Step.objects.all().count()
 		self.assertEqual(count, 3)
@@ -628,12 +627,12 @@ class IterationViewTest(TestCase):
 		self.step3 = Step.objects.create(name='step3', description='step3Description',
 			completed=False,goal = self.goal1)
 
-		self.iteration1 = Iteration.objects.create(number=1, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		self.iteration1 = Iteration.objects.create(number=1, completed = True,
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration2 = Iteration.objects.create(number=2, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration3 = Iteration.objects.create(number=1, completed = True,
-		date = datetime.date.today(), goal = self.goal2)
+		date = datetime.date.today(), owner = self.user2)
 
 	#==============================================test_iteration_create===================================
 
@@ -643,18 +642,23 @@ class IterationViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response =client.post(reverse('needs:iteration_list'), {
 			'number' : 2,
 			'completed' : True,
 			'date' : datetime.date.today(),
-			'goal': self.goal2.id,
 			}, format='json')
 
 		self.assertEqual(response.status_code, 201)
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 4)
+
+		iteration = Iteration.objects.get(pk=4)
+		self.assertEqual(iteration.number, 2)
+		self.assertEqual(iteration.completed, True)
+		self.assertEqual(iteration.date, datetime.date.today())
+		self.assertEqual(iteration.owner, self.user1)
 
 	def test_iteration_creation_no_loged_user(self):
 		count = Iteration.objects.all().count()
@@ -669,7 +673,7 @@ class IterationViewTest(TestCase):
 			'goal': self.goal2.id,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 3)
 
@@ -677,7 +681,7 @@ class IterationViewTest(TestCase):
 
 	def test_iteration_list(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:iteration_list'))
 		self.assertEqual(response.status_code, 200)
 
@@ -689,37 +693,9 @@ class IterationViewTest(TestCase):
 	def test_iteration_list_no_loged_user(self):
 		client = APIClient()
 		response = client.get(reverse('needs:iteration_list'))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
-	def test_iteration_list_by_goal(self):
-		client = APIClient()
-		client.login(username='root1', password='root')
-		response = client.get(reverse('needs:iteration_list_by_goal', kwargs={'goal': 1}))
-		self.assertEqual(response.status_code, 200)
-
-		stream = io.BytesIO(response.content)
-		data = JSONParser().parse(stream)
-		self.assertEqual(len(data) , 2)
-
-		Iteration.objects.create(number=1, completed = True,
-		date = datetime.date.today(), goal = self.goal3)
-
-		response = client.get(reverse('needs:iteration_list_by_goal', kwargs={'goal': 1}))
-		self.assertEqual(response.status_code, 200)
-
-		stream = io.BytesIO(response.content)
-		data = JSONParser().parse(stream)
-		self.assertEqual(len(data) , 2)
-
-		Iteration.objects.create(number=1, completed = True,
-		date = datetime.date.today(), goal = self.goal1)
-
-		response = client.get(reverse('needs:iteration_list_by_goal', kwargs={'goal': 1}))
-		self.assertEqual(response.status_code, 200)
-
-		stream = io.BytesIO(response.content)
-		data = JSONParser().parse(stream)
-		self.assertEqual(len(data) , 3)
+	
 
 	#==============================================test_iteration_update===================================
 
@@ -728,13 +704,13 @@ class IterationViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.put(reverse('needs:iteration_detail', kwargs={'pk':1}), {
 			'number' : 2,
 			'completed' : True,
 			'date' : datetime.date.today(),
-			'goal': self.goal2.id,
+			'owner': self.user1.id,
 			}, format='json')
 		self.assertEqual(response.status_code, 200)
 		count = Iteration.objects.all().count()
@@ -744,7 +720,7 @@ class IterationViewTest(TestCase):
 		self.assertEqual(iteration.number, 2)
 		self.assertIs(iteration.completed, True)
 		self.assertEqual(iteration.date, datetime.date.today())
-		self.assertEqual(iteration.goal, self.goal2)
+		self.assertEqual(iteration.owner, self.user1)
 
 	def test_iteration_update_no_loged_user(self):
 		count = Iteration.objects.all().count()
@@ -756,28 +732,28 @@ class IterationViewTest(TestCase):
 			'number' : 2,
 			'completed' : True,
 			'date' : datetime.date.today(),
-			'goal': self.goal2.id,
+			'owner': self.user1.id,
 			}, format='json')
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_iteration_update_from_other_user(self):
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.put(reverse('needs:iteration_detail', kwargs={'pk':3}), {
 			'number' : 2,
 			'completed' : True,
 			'date' : datetime.date.today(),
-			'goal': self.goal2.id,
+			'owner': self.user2.id,
 			}, format='json')
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 	#==============================================test_iteration_retrieve===================================
 
 	def test_iteration_retrieve(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:iteration_detail', kwargs={'pk':1}))
 		self.assertEqual(response.status_code, 200)
@@ -785,28 +761,27 @@ class IterationViewTest(TestCase):
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
 
-		self.assertEqual(data['number'], 1)
-		self.assertEqual(data['completed'], False)
-		self.assertEqual(data['date'], datetime.date.today().strftime('%Y-%m-%d'))
-		self.assertEqual(data['goal'], self.goal1.id)
+		self.assertEqual(data['number'], self.iteration1.number)
+		self.assertEqual(data['completed'], self.iteration1.completed)
+		self.assertEqual(data['date'], str(self.iteration1.date))
 
 	def test_iteration_retrieve_no_loged_user(self):
 		client = APIClient()
 
 		response = client.get(reverse('needs:iteration_detail', kwargs={'pk':1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_iteration_retrieve_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:iteration_detail', kwargs={'pk':3}))
-		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.status_code, 403)
 
 
 	def test_active_iteration_retrieve(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:active_iteration'))
 		self.assertEqual(response.status_code, 200)
@@ -814,16 +789,15 @@ class IterationViewTest(TestCase):
 		stream = io.BytesIO(response.content)
 		data = JSONParser().parse(stream)
 
-		self.assertEqual(data['number'], self.iteration3.number)
-		self.assertEqual(data['completed'], self.iteration3.completed)
-		self.assertEqual(data['date'], self.iteration3.date)
-		self.assertEqual(data['goal'], self.iteration3.goal)
+		self.assertEqual(data['number'], self.iteration2.number)
+		self.assertEqual(data['completed'], self.iteration2.completed)
+		self.assertEqual(data['date'], str(self.iteration2.date))
 
 	#==============================================test_iteration_delete===================================
 
 	def test_iteration_delete(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 3)
@@ -841,20 +815,20 @@ class IterationViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		response = client.delete(reverse('needs:iteration_detail', kwargs={'pk':1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 3)
 
 	def test_iteration_delete_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 3)
 
 		response = client.delete(reverse('needs:iteration_detail', kwargs={'pk':3}))
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 		count = Iteration.objects.all().count()
 		self.assertEqual(count, 3)
@@ -880,11 +854,11 @@ class DeliveryViewTest(TestCase):
 			completed=False,goal = self.goal1)
 
 		self.iteration1 = Iteration.objects.create(number=1, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration2 = Iteration.objects.create(number=2, completed = False,
-		date = datetime.date.today(), goal = self.goal1)
+		date = datetime.date.today(), owner = self.user1)
 		self.iteration3 = Iteration.objects.create(number=1, completed = True,
-		date = datetime.date.today(), goal = self.goal2)
+		date = datetime.date.today(), owner = self.user2)
 
 		self.delivery1 = Delivery.objects.create(name='delivery1', description='delivery1Description',
 			step = self.step1, iteration = self.iteration1, completed= False)
@@ -900,7 +874,7 @@ class DeliveryViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.post(reverse('needs:delivery_list'), {
 			'name' : 'newIteration',
@@ -928,7 +902,7 @@ class DeliveryViewTest(TestCase):
 			'completed': True,
 			}, format='json')
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 3)
 
@@ -936,7 +910,7 @@ class DeliveryViewTest(TestCase):
 
 	def test_delivery_list(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:delivery_list'))
 
 		self.assertEqual(response.status_code, 200)
@@ -951,11 +925,11 @@ class DeliveryViewTest(TestCase):
 		client = APIClient()
 		response = client.get(reverse('needs:delivery_list'))
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_delivery_list_by_step(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:delivery_list_by_step', kwargs={'step':1}))
 
 		self.assertEqual(response.status_code, 200)
@@ -991,7 +965,7 @@ class DeliveryViewTest(TestCase):
 
 	def test_delivery_list_by_iteration(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 		response = client.get(reverse('needs:delivery_list_by_iteration', kwargs={'iteration':1}))
 
 		self.assertEqual(response.status_code, 200)
@@ -1030,7 +1004,7 @@ class DeliveryViewTest(TestCase):
 
 	def test_delivery_retrieve(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:delivery_detail', kwargs={'pk':1}))
 		self.assertEqual(response.status_code, 200)
@@ -1048,14 +1022,14 @@ class DeliveryViewTest(TestCase):
 		client = APIClient()
 
 		response = client.get(reverse('needs:delivery_detail', kwargs={'pk':1}))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_delivery_retrieve_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.get(reverse('needs:delivery_detail', kwargs={'pk':3}))
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 	#==============================================test_delivery_update===================================
 
@@ -1064,7 +1038,7 @@ class DeliveryViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.put(reverse('needs:delivery_detail', kwargs={'pk':1}), {
 			'name' : 'Iteration1Updated',
@@ -1099,11 +1073,11 @@ class DeliveryViewTest(TestCase):
 			'iteration': self.iteration1.id,
 			'completed': True,
 			}, format='json')
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 
 	def test_delivery_update_from_other_user(self):
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.put(reverse('needs:delivery_detail', kwargs={'pk':3}), {
 			'name' : 'Iteration1Updated',
@@ -1112,7 +1086,7 @@ class DeliveryViewTest(TestCase):
 			'iteration': self.iteration1.id,
 			'completed': True,
 			}, format='json')
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 
 	#==============================================test_delivery_delete===================================
 
@@ -1121,7 +1095,7 @@ class DeliveryViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.delete(reverse('needs:delivery_detail', kwargs={'pk':1}))
 
@@ -1137,7 +1111,7 @@ class DeliveryViewTest(TestCase):
 
 		response = client.delete(reverse('needs:delivery_detail', kwargs={'pk':1}))
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 401)
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 3)
 
@@ -1146,11 +1120,11 @@ class DeliveryViewTest(TestCase):
 		self.assertEqual(count, 3)
 
 		client = APIClient()
-		client.login(username='root1', password='root')
+		client.force_authenticate(user=self.user1)
 
 		response = client.delete(reverse('needs:delivery_detail', kwargs={'pk':3}))
 
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
 		count = Delivery.objects.all().count()
 		self.assertEqual(count, 3)
 
