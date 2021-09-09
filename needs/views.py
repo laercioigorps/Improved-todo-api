@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Need, Goal, Step, Iteration, Delivery
-from .serializers import NeedSerializer, GoalSerializer, StepSerializer, IterationSerializer, DeliverySerializer
+from .serializers import NeedSerializer, StepSerializer, IterationSerializer, DeliverySerializer, GoalGetSerializer, GoalPostPutSerializer
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view, permission_classes
@@ -61,12 +61,12 @@ def goal_list_view(request, format=None):
 
     if request.method == 'GET':
         goals = Goal.objects.filter(need__user=request.user)
-        serializer = GoalSerializer(goals, many=True)
+        serializer = GoalGetSerializer(goals, many=True)
         return Response(serializer.data)
 
     if request.method == 'POST':
         data = JSONParser().parse(request)
-        serializer = GoalSerializer(data=data)
+        serializer = GoalPostPutSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -79,7 +79,7 @@ def goal_list_by_need_view(request, need, format=None):
 
     if request.method == 'GET':
         goals = Goal.objects.filter(need__user=request.user).filter(need=need)
-        serializer = GoalSerializer(goals, many=True)
+        serializer = GoalGetSerializer(goals, many=True)
         return Response(serializer.data)
 
 
@@ -95,11 +95,11 @@ def goal_detail_view(request, pk, format=None):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'GET':
-        serializer = GoalSerializer(goal)
+        serializer = GoalGetSerializer(goal)
         return Response(serializer.data)
     if request.method == 'PUT':
         data = JSONParser().parse(request)
-        serializer = GoalSerializer(goal, data=data)
+        serializer = GoalPostPutSerializer(goal, data=data)
         if(serializer.is_valid()):
             serializer.save()
             return Response(serializer.data)
