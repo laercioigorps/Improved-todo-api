@@ -274,7 +274,8 @@ class GoalViewTest(TestCase):
         self.assertEqual(data['name'], 'goal1')
         self.assertEqual(data['description'], 'goal1Description')
         self.assertEqual(data['endDate'], self.today.strftime('%Y-%m-%d'))
-        self.assertEqual(data['need'], self.need1.id)
+        self.assertEqual(data['need']['id'], self.need1.id)
+        self.assertEqual(data['need']['name'], self.need1.name)
 
     def test_goal_retrieve_no_loged_user(self):
         client = APIClient()
