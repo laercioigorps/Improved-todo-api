@@ -206,7 +206,7 @@ def iteration_detail_view(request, pk, format=None):
 @permission_classes([permissions.IsAuthenticated])
 def iteration_get_active_view(request, format=None):
     try:
-        iteration = Iteration.objects.get(completed=False)
+        iteration = Iteration.objects.filter(owner= request.user).get(completed=False)
     except Iteration.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
