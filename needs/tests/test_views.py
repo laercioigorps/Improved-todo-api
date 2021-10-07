@@ -819,6 +819,13 @@ class IterationViewTest(TestCase):
         self.assertEqual(data['completed'], self.iteration2.completed)
         self.assertEqual(data['date'], str(self.iteration2.date))
 
+    def test_active_iteration_retrieve_no_active_iteration(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user2)
+
+        response = client.get(reverse('needs:active_iteration'))
+        self.assertEqual(response.status_code, 404)
+
     # ==============================================test_iteration_delete===================================
 
     def test_iteration_delete(self):
