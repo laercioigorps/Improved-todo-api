@@ -10,6 +10,8 @@ class Need(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=80, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    iconName = models.CharField(max_length=20, null=True)
+    iconColor = models.CharField(max_length=17, null=True)
 
     def __str__(self):
         return self.name
