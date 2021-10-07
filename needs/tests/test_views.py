@@ -62,6 +62,31 @@ class NeedViewTest(TestCase):
         count = Need.objects.all().count()
         self.assertEqual(count, 3)
 
+    def test_need_create_with_icon(self):
+        count = Need.objects.all().count()
+        self.assertEqual(count, 3)
+
+        client = APIClient()
+        client.force_authenticate(user=self.user1)
+        response = client.post(reverse('needs:need_list'),
+                               {
+            'name': 'newNeed',
+            'description': 'newneedDescription',
+            'iconName': 'far fa-heart',
+            'iconColor': 'bg-red-500',
+        }, format='json')
+        self.assertEqual(response.status_code, 201)
+
+        count = Need.objects.all().count()
+        self.assertEqual(count, 4)
+
+        need = Need.objects.get(id=4)
+        self.assertEqual(need.description, 'newneedDescription')
+        self.assertEqual(need.name, 'newNeed')
+        self.assertEqual(need.user, self.user1)
+        self.assertEqual(need.iconName, 'far fa-heart')
+        self.assertEqual(need.iconColor, 'bg-red-500')
+
     # ==============================================test_need_list==========================================
 
     def test_need_list(self):
@@ -122,13 +147,16 @@ class NeedViewTest(TestCase):
                               {
             'name': 'need2Updated',
             'description': 'need2DescriptionUpdated',
+            'iconName': 'far fa-heart',
+            'iconColor': 'bg-red-500',
         }, format='json')
 
         self.assertEqual(response.status_code, 200)
         need = Need.objects.get(id=2)
         self.assertEqual(need.name, 'need2Updated')
         self.assertEqual(need.description, 'need2DescriptionUpdated')
-
+        self.assertEqual(need.iconName, 'far fa-heart')
+        self.assertEqual(need.iconColor, 'bg-red-500')
         count = Need.objects.all().count()
         self.assertEqual(count, 3)
 
