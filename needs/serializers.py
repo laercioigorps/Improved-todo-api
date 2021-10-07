@@ -6,7 +6,7 @@ class NeedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Need
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'description', 'iconName', 'iconColor']
 
 
 class GoalGetSerializer(serializers.ModelSerializer):
