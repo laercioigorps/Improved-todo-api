@@ -73,6 +73,27 @@ class NeedSerializerTest(TestCase):
         count = Need.objects.all().count()
         self.assertEqual(count, 3)
 
+    def test_need_icon(self):
+        count = Need.objects.all().count()
+        self.assertEqual(count, 3)
+
+        need = Need(name='mind', description='a need we have', iconName='iconname', iconColor='iconColor')
+        needSerializer = NeedSerializer(need)
+        data = get_json_data(needSerializer.data)
+
+        serializer = NeedSerializer(data=data)
+        serializer.is_valid()
+        serializer.save(user=self.user1)
+
+        count = Need.objects.all().count()
+        self.assertEqual(count, 4)
+
+        getNeed = Need.objects.get(name='mind')
+        self.assertEqual(getNeed.user, self.user1)
+        self.assertEqual(getNeed.description, 'a need we have')
+        self.assertEqual(getNeed.iconName, 'iconname')
+        self.assertEqual(getNeed.iconColor, 'iconColor')
+
 
 class GoalSerializerTest(TestCase):
 
