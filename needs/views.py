@@ -206,7 +206,8 @@ def iteration_detail_view(request, pk, format=None):
 @permission_classes([permissions.IsAuthenticated])
 def iteration_get_active_view(request, format=None):
     try:
-        iteration = Iteration.objects.filter(owner= request.user).get(completed=False)
+        iteration = Iteration.objects.filter(
+            owner=request.user).get(completed=False)
     except Iteration.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
@@ -293,15 +294,15 @@ def wizard_view(request, format=None):
         needs = Need.objects.filter(user=request.user)
         if(needs.count() == 0):
             Need.objects.create(
-                name='Health', description='need1 description', user=request.user)
+                name='Health', description='need1 description', user=request.user, iconName="far fa-heart", iconColor="bg-red-500")
             Need.objects.create(
-                name='Finance', description='need2 description', user=request.user)
+                name='Finance', description='need2 description', user=request.user, iconName="far fa-chart-bar", iconColor="bg-red-500")
             Need.objects.create(
-                name='Professional', description='need3 description', user=request.user)
+                name='Professional', description='need3 description', user=request.user, iconName="fas fa-user-tie", iconColor="bg-red-500")
             Need.objects.create(
-                name='Mind', description='need4 description', user=request.user)
+                name='Mind', description='need4 description', user=request.user, iconName="fas fa-code-branch", iconColor="bg-red-500")
             Need.objects.create(
-                name='Others', description='need5 description', user=request.user)
+                name='Others', description='need5 description', user=request.user, iconName="far fa-handshake", iconColor="bg-red-500")
 
             return Response(status=200)
         return Response(status=404)
