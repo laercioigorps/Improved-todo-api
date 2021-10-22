@@ -18,7 +18,7 @@ class Need(models.Model):
 
 
 class Goal(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=50)
     description = models.CharField(max_length=80, default='')
     endDate = models.DateField(auto_now_add=False, null=True)
     need = models.ForeignKey(Need, on_delete=models.CASCADE)
