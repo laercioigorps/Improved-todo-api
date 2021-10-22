@@ -23,9 +23,18 @@ class GoalPostPutSerializer(serializers.ModelSerializer):
 
 class StepSerializer(serializers.ModelSerializer):
 
+    percentageCompleted = serializers.SerializerMethodField('get_percentage_completed')
     class Meta:
         model = Step
-        fields = ['id', 'name', 'description', 'completed', 'goal']
+        fields = ['id', 'name', 'description', 'completed', 'goal','percentageCompleted']
+
+    def get_percentage_completed(self, obj):
+        count = Delivery.objects.filter(step = obj.id)
+        count_completed = count.filter(completed=True)
+        if(count.count() == 0):
+            return "0%"
+        percentage = count_completed.count() /count.count() * 100
+        return str(percentage)+ "%"
 
 
 class IterationSerializer(serializers.ModelSerializer):
