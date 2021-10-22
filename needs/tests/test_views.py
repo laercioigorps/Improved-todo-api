@@ -270,6 +270,31 @@ class GoalViewTest(TestCase):
         self.assertEqual(goal.endDate, endDate)
         self.assertEqual(goal.need, self.need1)
 
+    def test_goal_create_name_length_50(self):
+        count = Goal.objects.all().count()
+        self.assertEqual(count, 3)
+        endDate = datetime.date.today()
+
+        client = APIClient()
+        client.force_authenticate(user=self.user1)
+        response = client.post(reverse('needs:goal_list'), {
+            'name': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            'description': 'newGoalDescription',
+            'endDate': endDate,
+            'need': self.need1.id,
+        }, format='json')
+
+        self.assertEqual(response.status_code, 201)
+
+        count = Goal.objects.all().count()
+        self.assertEqual(count, 4)
+
+        goal = Goal.objects.get(id=4)
+        self.assertEqual(goal.name, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+        self.assertEqual(goal.description, 'newGoalDescription')
+        self.assertEqual(goal.endDate, endDate)
+        self.assertEqual(goal.need, self.need1)
+
     def test_goal_create_no_loged_user(self):
         count = Goal.objects.all().count()
         self.assertEqual(count, 3)
@@ -569,6 +594,56 @@ class StepViewTest(TestCase):
 
         response = client.get(reverse('needs:step_detail', kwargs={'pk': 3}))
         self.assertEqual(response.status_code, 403)
+
+    def test_step_retrieve_with_percentage_completed_no_deliveries(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user1)
+
+        response = client.get(reverse('needs:step_detail', kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 200)
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(data['name'], 'step1')
+        self.assertEqual(data['description'], 'step1Description')
+        self.assertEqual(data['completed'], False)
+        self.assertEqual(data['goal'], self.goal1.id)
+        self.assertEqual(data['percentageCompleted'], '0%')
+
+    def test_step_retrieve_with_percentage_completed_one_deliverie_completed_100(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user1)
+
+        Delivery.objects.create(name="",description="", step=self.step1, completed=True)
+
+        response = client.get(reverse('needs:step_detail', kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 200)
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(data['name'], 'step1')
+        self.assertEqual(data['description'], 'step1Description')
+        self.assertEqual(data['completed'], False)
+        self.assertEqual(data['goal'], self.goal1.id)
+        self.assertEqual(data['percentageCompleted'], '100.0%')
+
+    def test_step_retrieve_with_percentage_completed_one_of_two_deliverie_completed_50(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user1)
+
+        Delivery.objects.create(name="",description="", step=self.step1, completed=True)
+        Delivery.objects.create(name="aiai",description="ds", step=self.step1)
+
+        response = client.get(reverse('needs:step_detail', kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 200)
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(data['name'], 'step1')
+        self.assertEqual(data['description'], 'step1Description')
+        self.assertEqual(data['completed'], False)
+        self.assertEqual(data['goal'], self.goal1.id)
+        self.assertEqual(data['percentageCompleted'], '50.0%')
 
     # ==============================================test_step_update=======================================
 
