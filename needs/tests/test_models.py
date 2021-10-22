@@ -152,6 +152,19 @@ class GoalModelTest(TestCase):
         self.assertEqual(goal.description, 'description teste')
         self.assertEqual(goal.endDate, date)
 
+    def test_goal_create_with_50_char_length_name(self):
+        count = Goal.objects.all().count()
+        self.assertEqual(count, 3)
+        date = datetime.date.today()
+        Goal.objects.create(
+            name="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", description='description teste', endDate=date, need=self.need3)
+        goal = Goal.objects.get(id=4)
+        count = Goal.objects.all().count()
+        self.assertEqual(count, 4)
+        self.assertEqual(goal.name, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+        self.assertEqual(goal.description, 'description teste')
+        self.assertEqual(goal.endDate, date)
+
     def test_goal_update(self):
         goal = Goal.objects.get(name='goal3')
         goal.name = 'goal3Edited'
