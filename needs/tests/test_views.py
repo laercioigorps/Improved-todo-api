@@ -1031,6 +1031,25 @@ class DeliveryViewTest(TestCase):
         count = Delivery.objects.all().count()
         self.assertEqual(count, 4)
 
+    def test_delivery_creation_with_name_length_60(self):
+        count = Delivery.objects.all().count()
+        self.assertEqual(count, 3)
+
+        client = APIClient()
+        client.force_authenticate(user=self.user1)
+
+        response = client.post(reverse('needs:delivery_list'), {
+            'name': '012345678901234567890123456789012345678901234567890123456789',
+            'description': 'newIterationDescription',
+            'step': self.step2.id,
+            'iteration': self.iteration1.id,
+            'completed': True,
+        }, format='json')
+
+        self.assertEqual(response.status_code, 201)
+        count = Delivery.objects.all().count()
+        self.assertEqual(count, 4)
+
     def test_delivery_creation_no_loged_user(self):
         count = Delivery.objects.all().count()
         self.assertEqual(count, 3)
