@@ -39,7 +39,7 @@ class Iteration(models.Model):
 
 
 class Delivery(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=60)
     description = models.CharField(max_length=100)
     step = models.ForeignKey(
         Step, on_delete=models.CASCADE, null=True)  # may be changed
