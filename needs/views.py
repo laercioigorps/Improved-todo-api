@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
+from datetime import date, timedelta
 # Create your views here.
 
 
@@ -303,6 +304,10 @@ def wizard_view(request, format=None):
                 name='Mind', description='need4 description', user=request.user, iconName="fas fa-code-branch", iconColor="bg-red-500")
             Need.objects.create(
                 name='Others', description='need5 description', user=request.user, iconName="far fa-handshake", iconColor="bg-red-500")
+
+            dateToBeUsed = date.today() + timedelta(days=5)
+            Iteration.objects.create(
+                number=0, completed=False, date=dateToBeUsed, owner=request.user)
 
             return Response(status=200)
         return Response(status=404)
