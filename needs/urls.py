@@ -33,6 +33,8 @@ urlpatterns = [
     path('delivery/<int:pk>/', views.delivery_detail_view, name='delivery_detail'),
     path('wizard/', views.wizard_view, name='wizard'),
 
+    path('tutorialsetup/', views.tutorial_setup_view, name='tutorial_setup'),
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
