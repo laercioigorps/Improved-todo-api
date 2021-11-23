@@ -309,7 +309,7 @@ def wizard_view(request, format=None):
             Iteration.objects.create(
                 number=0, completed=False, date=dateToBeUsed, owner=request.user)
 
-            return Response(status=200)
+            return Response(status=status.HTTP_201_CREATED)
         return Response(status=404)
 
 
@@ -366,5 +366,5 @@ def tutorial_setup_view(request, format=None):
 
         Delivery.objects.bulk_create(deliveries)
 
-        return Response(status=200)
+        return Response(status=status.HTTP_201_CREATED)
     return Response(status=404)
