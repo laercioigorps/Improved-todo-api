@@ -311,3 +311,60 @@ def wizard_view(request, format=None):
 
             return Response(status=200)
         return Response(status=404)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def tutorial_setup_view(request, format=None):
+    if request.method == 'POST':
+        iteration = Iteration.objects.get(owner=request.user)
+        need = Need.objects.filter(name='Others').get(user=request.user)
+        goal = Goal.objects.create(
+            name='tutorial', description="tutorial", endDate=None, need=need)
+
+        step1 = Step.objects.create(
+            name="Learn To Check", description="d", goal=goal, completed=False)
+        step2 = Step.objects.create(
+            name="Learn About The Goals", description="d", goal=goal, completed=False)
+        step3 = Step.objects.create(
+            name="Learn About The Steps", description="d", goal=goal, completed=False)
+        step4 = Step.objects.create(
+            name="Learn About The Iterations", description="d", goal=goal, completed=False)
+
+        deliveries = []
+
+        deliveries.append(Delivery(name="Welcome to IginApp", description="Be welcome, we'll try our best",
+                          step=step1, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="Mark a task as completed by checking the side box!", description="You can mark a task as completed by checking the side box!",
+                          step=step1, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="Check us when you complete the task", description="Check us when you complete the task",
+                          step=step1, iteration=iteration, completed=False))
+
+        deliveries.append(Delivery(name="Our Needs are Health, Mind,Financial,Professional and Others", description="that's right",
+                          step=step2, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="The App is based on Goals and Needs", description="The App is based on Goals and Needs",
+                          step=step2, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="Click the tutorial Goal on the side Goal box!", description="Click the tutorial Goal on the side Goal box!",
+                          step=step2, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="We need to complete some steps to complete the goal!", description="We need to complete some steps to complete the goal",
+                          step=step2, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="The second Step is Ok with this task!", description="Done",
+                          step=step2, iteration=iteration, completed=False))
+
+        deliveries.append(Delivery(name="Click the learn step step", description="Click the learn step step",
+                          step=step3, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="Each Step is composed of tasks!", description="Each Step is composed of tasks!",
+                          step=step3, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="To add a new task on a step click the 'add new' button", description="Hope you are doing good",
+                          step=step3, iteration=iteration, completed=False))
+        deliveries.append(Delivery(name="To define a task to be done click 'Add' on the side", description="Right now the task is going to show up in the to-do box",
+                          step=step3, iteration=None, completed=False))
+        deliveries.append(Delivery(name="You can remove a task from your todo list by clicking remove", description="You can remove a task from your to-do list by clicking 'remove'",
+                          step=step3, iteration=None, completed=False))
+        deliveries.append(Delivery(name="You can click the task name to edit!", description="You can click the task name to edit!",
+                          step=step3, iteration=None, completed=False))
+
+        Delivery.objects.bulk_create(deliveries)
+
+        return Response(status=200)
+    return Response(status=404)
