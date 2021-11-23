@@ -1481,3 +1481,57 @@ class UserViewTest(TestCase):
         data = JSONParser().parse(stream)
 
         self.assertEqual(len(data), 1)
+
+
+    def test_tutorial_goal_with_steps_and_deliveries_create(self):
+        client = APIClient()
+
+        response = client.post('/rest-auth/registration/',
+                               {
+                                   'username': 'newNeed',
+                                   'email': 'aiaiai@gmail.com',
+                                   'password1': 'newneedDescription',
+                                   'password2': 'newneedDescription',
+                               }, format='json')
+
+        self.assertEqual(response.status_code, 201)
+
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        key = data['key']
+
+        client2 = APIClient()
+        client2.credentials(HTTP_AUTHORIZATION='Token ' + key)
+
+        response = client2.post(reverse('needs:wizard'), format='json')
+        self.assertEqual(response.status_code, 200)
+
+        response = client2.get(reverse('needs:goal_list'), format='json')
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(len(data), 0)
+
+        response = client2.post(reverse('needs:tutorial_setup'), format='json')
+        self.assertEqual(response.status_code, 200)
+
+        response = client2.get(reverse('needs:goal_list'), format='json')
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(len(data), 1)
+
+        response = client2.get(reverse('needs:step_list'), format='json')
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(len(data), 4)
+
+        response = client2.get(reverse('needs:delivery_list'), format='json')
+        stream = io.BytesIO(response.content)
+        data = JSONParser().parse(stream)
+
+        self.assertEqual(len(data), 1)
+
+
